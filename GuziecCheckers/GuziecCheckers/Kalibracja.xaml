@@ -9,6 +9,7 @@
       Title="Kalibracja">
 
     <Grid>
-        
+        <Image x:Name="imgPodgladSzachownicy" HorizontalAlignment="Left" Height="400" Width="600" Margin="10,10,0,0" VerticalAlignment="Top"/>
+
     </Grid>
 </Page>
