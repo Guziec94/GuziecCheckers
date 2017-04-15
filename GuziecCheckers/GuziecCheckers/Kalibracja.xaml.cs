@@ -1,8 +1,10 @@
 ﻿using Emgu.CV;
+using Emgu.CV.Structure;
 using System;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -14,9 +16,36 @@ namespace GuziecCheckers
     /// </summary>
     public partial class Kalibracja : Page
     {
+        public static Thread t = null;
+
+        #region Ciało wątku przetwarzającego obraz napływający z kamery
+        private void w()
+        {
+            try
+            {
+                Capture kamera = new Capture(0);
+
+                while (true)
+                {
+                    Mat matImage = kamera.QueryFrame();
+                    Image<Bgr, byte> obraz = matImage.ToImage<Bgr, byte>();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show(ex.Message);
+            }
+        }
+        #endregion
+
         public Kalibracja()
         {
             InitializeComponent();
+
+            #region Uruchamiamy wątek przetwarzający obraz z kamery
+            t = new Thread(w);
+            t.Start();
+            #endregion
         }
     }
 

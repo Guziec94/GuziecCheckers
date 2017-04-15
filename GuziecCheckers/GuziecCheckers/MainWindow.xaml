@@ -5,8 +5,6 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GuziecCheckers"
         mc:Ignorable="d"
-        Title="GuziecCheckers" Height="650" Width="825" ResizeMode="CanMinimize">
-    <Grid>
-        
-    </Grid>
+        Title="GuziecCheckers" Height="650" Width="825" ResizeMode="CanMinimize" Closed="Window_Closed">
+    <Frame Source="Kalibracja.xaml" NavigationUIVisibility="Hidden"/>
 </Window>
