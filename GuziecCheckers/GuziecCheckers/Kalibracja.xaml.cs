@@ -1,4 +1,5 @@
 ﻿using Emgu.CV;
+using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 using System;
 using System.Drawing;
@@ -28,7 +29,7 @@ namespace GuziecCheckers
                 while (true)
                 {
                     Mat matImage = kamera.QueryFrame();
-                    Image<Bgr, byte> obraz = matImage.ToImage<Bgr, byte>();
+                    Image<Bgr, byte> obraz = matImage.ToImage<Bgr, byte>();                  
                 }
             }
             catch (Exception ex)
@@ -46,6 +47,32 @@ namespace GuziecCheckers
             t = new Thread(w);
             t.Start();
             #endregion
+        }
+
+        /// <summary>
+        /// Funkcja wyszukująca we wskazanym obrazie okręgi znajdujące się w zdefiniowanym zakresie kolorystycznym, zdefeniowanej odległości pomiędzy pojedynczymi egzemplarzami oraz zdefiniowanym zakresie długości promienia
+        /// </summary>
+        /// <param name="img">Przeszukiwany obraz</param>
+        /// <param name="min">Dolny zakres kolorystyki wyszukiwanych okręgów</param>
+        /// <param name="max">Górny zakres kolorystyki wyszukiwanych okręgów</param>
+        /// <param name="DistanceMin">Minimalna odległość pomiędzy środkami znajdywanych okręgów</param>
+        /// <param name="radiusMin">Minimalna długość promienia wyszukiwanych okręgów</param>
+        /// <param name="radiusMax">Maksymalna długość promienia wyszukiwanych okręgów</param>
+        /// <returns></returns>
+        private CircleF[] findCircles(Image<Bgr, byte> img, Bgr min, Bgr max, double DistanceMin = 20.0, int radiusMin = 20, int radiusMax = 30)
+        {
+            UMat uimage = new UMat();
+            CvInvoke.CvtColor(img.InRange(min, max).Convert<Bgr, byte>(), uimage, ColorConversion.Bgr2Gray);
+
+            UMat pyrDown = new UMat();
+            CvInvoke.PyrDown(uimage, pyrDown);
+            CvInvoke.PyrUp(pyrDown, uimage);
+
+            double cannyThreshold = 100;
+            double circleAccumulatorThreshold = 100;
+            CircleF[] circles = CvInvoke.HoughCircles(uimage, HoughType.Gradient, 2.0, DistanceMin, cannyThreshold, circleAccumulatorThreshold, radiusMin, radiusMax);
+
+            return circles;
         }
     }
 
