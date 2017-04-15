@@ -10,6 +10,7 @@ using System.Threading;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 
 namespace GuziecCheckers
 {
@@ -18,6 +19,22 @@ namespace GuziecCheckers
     /// </summary>
     public partial class Kalibracja : Page
     {
+        struct Field
+        {
+            Point LeftUp { get; set; }
+            Point LeftDown { get; set; }
+            Point RightUp { get; set; }
+            Point RightDown { get; set; }
+
+            Field(Point LeftUp, Point LeftDown, Point RightUp, Point RightDown)
+            {
+                this.LeftUp = LeftUp;
+                this.LeftDown = LeftDown;
+                this.RightUp = RightUp;
+                this.RightDown = RightDown;
+            }
+        }
+
         public static Thread t = null;
 
         #region Ciało wątku przetwarzającego obraz napływający z kamery
@@ -31,6 +48,8 @@ namespace GuziecCheckers
                 {
                     Mat matImage = kamera.QueryFrame();
                     Image<Bgr, byte> obraz = matImage.ToImage<Bgr, byte>();
+
+                    imgPodgladSzachownicy.Dispatcher.Invoke(() => { imgPodgladSzachownicy.Source = BitmapSourceConvert.ImageToBitmapSource(obraz); });
                 }
             }
             catch (Exception ex)
@@ -80,12 +99,12 @@ namespace GuziecCheckers
         /// Funkcja kalibrująca zmiany położenia szachownicy względem kamery
         /// </summary>
         /// <param name="img">Przeszukiwany obraz</param>
-        /// <param name="size">Rozmiar szachownicy (Liczność pól szerokości długości umniejszona o 1 w obu przypadkach)</param>
+        /// <param name="size">Rozmiar szachownicy (Liczność pól boku szachownicy)</param>
         /// <param name="draw">Rysuje punkty wskazujące położenie pól szachownicy</param>
         /// <returns></returns>
-        private VectorOfPointF calibrationCamera(Image<Bgr, byte> img, Size? size = null, bool draw = false)
+        private VectorOfPointF calibrationCamera(Image<Bgr, byte> img, int size = 10, bool draw = false)
         {
-            Size patternSize = (Size)(size.HasValue ? size : new Size(9, 9));
+            Size patternSize = new Size((size - 1), (size - 1));
 
             VectorOfPointF corners = new VectorOfPointF();
             bool found = CvInvoke.FindChessboardCorners(img, patternSize, corners);
