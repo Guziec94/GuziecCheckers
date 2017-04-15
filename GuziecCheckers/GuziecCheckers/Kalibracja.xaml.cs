@@ -1,6 +1,7 @@
 ﻿using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
+using Emgu.CV.Util;
 using System;
 using System.Drawing;
 using System.IO;
@@ -29,7 +30,7 @@ namespace GuziecCheckers
                 while (true)
                 {
                     Mat matImage = kamera.QueryFrame();
-                    Image<Bgr, byte> obraz = matImage.ToImage<Bgr, byte>();                  
+                    Image<Bgr, byte> obraz = matImage.ToImage<Bgr, byte>();
                 }
             }
             catch (Exception ex)
@@ -73,6 +74,25 @@ namespace GuziecCheckers
             CircleF[] circles = CvInvoke.HoughCircles(uimage, HoughType.Gradient, 2.0, DistanceMin, cannyThreshold, circleAccumulatorThreshold, radiusMin, radiusMax);
 
             return circles;
+        }
+
+        /// <summary>
+        /// Funkcja kalibrująca zmiany położenia szachownicy względem kamery
+        /// </summary>
+        /// <param name="img">Przeszukiwany obraz</param>
+        /// <param name="size">Rozmiar szachownicy (Liczność pól szerokości długości umniejszona o 1 w obu przypadkach)</param>
+        /// <param name="draw">Rysuje punkty wskazujące położenie pól szachownicy</param>
+        /// <returns></returns>
+        private VectorOfPointF calibrationCamera(Image<Bgr, byte> img, Size? size = null, bool draw = false)
+        {
+            Size patternSize = (Size)(size.HasValue ? size : new Size(9, 9));
+
+            VectorOfPointF corners = new VectorOfPointF();
+            bool found = CvInvoke.FindChessboardCorners(img, patternSize, corners);
+
+            if(draw) CvInvoke.DrawChessboardCorners(img, patternSize, corners, found);
+
+            return corners;
         }
     }
 
