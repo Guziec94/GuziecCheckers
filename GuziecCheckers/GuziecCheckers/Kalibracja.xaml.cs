@@ -20,17 +20,21 @@ namespace GuziecCheckers
     public partial class Kalibracja : Page
     {
         public static Thread t = null;
+
         #region Ciało wątku przetwarzającego obraz napływający z kamery
         private void w()
         {
             try
             {
+                Chessboard szachownica = new Chessboard(new Bgr(), new Bgr(), new Bgr(), new Bgr(), 20.0, 20.0, 20, 20, 30, 30);
                 Capture kamera = new Capture(0);
 
                 while (true)
                 {
                     Mat matImage = kamera.QueryFrame();
                     Image<Bgr, byte> obraz = matImage.ToImage<Bgr, byte>();
+
+                    szachownica.Calibration(obraz, true);
                    
                     imgPodgladSzachownicy.Dispatcher.Invoke(() => { imgPodgladSzachownicy.Source = Tools.ImageToBitmapSource(obraz); });
                 }
@@ -116,13 +120,19 @@ namespace GuziecCheckers
         #region Struktury itp
         private struct Field
         {
+            public char column { get; set; }
+            public int row { get; set; }
+
             public Point leftUp { get; set; }
             public Point leftDown { get; set; }
             public Point rightUp { get; set; }
             public Point rightDown { get; set; }
 
-            public Field(Point leftUp, Point rightUp, Point leftDown, Point rightDown)
+            public Field(char column, int row, Point leftUp, Point rightUp, Point leftDown, Point rightDown)
             {
+                this.column = column;
+                this.row = row;
+
                 this.leftUp = leftUp;
                 this.rightUp = rightUp;
                 this.leftDown = leftDown;
@@ -169,10 +179,16 @@ namespace GuziecCheckers
             if (corners.Size == Convert.ToInt32(Math.Pow((_size - 1), 2)))
             {
                 _fields.Clear();
+          
+                char column = 'A';
+                int row = 1;
+
                 for (int i = 0; i < corners.Size - (_size - 1); i++)
                 {
-                    if ((i + 1) % (_size - 1) == 0) continue;
-                    _fields.Add(new Field(new Point((int)corners[i].X, (int)corners[i].Y), new Point((int)corners[i + 1].X, (int)corners[i + 1].Y), new Point((int)corners[i + (_size - 1)].X, (int)corners[i + (_size - 1)].Y), new Point((int)corners[i + _size].X, (int)corners[i + _size].Y)));
+                    if ((i + 1) % (_size - 1) == 0) { column = (char)(Convert.ToUInt16(column) + 1); continue; }
+                    _fields.Add(new Field(column, row++, new Point((int)corners[i].X, (int)corners[i].Y), new Point((int)corners[i + 1].X, (int)corners[i + 1].Y), new Point((int)corners[i + (_size - 1)].X, (int)corners[i + (_size - 1)].Y), new Point((int)corners[i + _size].X, (int)corners[i + _size].Y)));
+
+                    if (row == (_size - 1)) row = 1;
                 }
             }
             #endregion
