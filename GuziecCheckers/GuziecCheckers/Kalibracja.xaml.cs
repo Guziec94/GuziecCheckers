@@ -1,5 +1,4 @@
 ﻿using Emgu.CV;
-using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
 using System;
@@ -26,16 +25,16 @@ namespace GuziecCheckers
         {
             try
             {
-                Chessboard szachownica = new Chessboard(new Bgr(), new Bgr(), new Bgr(), new Bgr(), 20.0, 20.0, 20, 20, 30, 30);
-                Capture kamera = new Capture(0);
+                Chessboard szachownica = new Chessboard(new Bgr(4, 0, 115), new Bgr(0, 140, 21), new Bgr(98, 93, 255), new Bgr(113, 254, 110), 10.0, 10.0, 14, 14, 18, 18);
 
+                Capture kamera = new Capture(1);
                 while (true)
                 {
                     Mat matImage = kamera.QueryFrame();
                     Image<Bgr, byte> obraz = matImage.ToImage<Bgr, byte>();
 
-                    szachownica.Calibration(obraz, true);
-                   
+                    szachownica.Calibration(obraz, true, true);
+
                     imgPodgladSzachownicy.Dispatcher.Invoke(() => { imgPodgladSzachownicy.Source = Tools.ImageToBitmapSource(obraz); });
                 }
             }
@@ -123,15 +122,19 @@ namespace GuziecCheckers
             public char column { get; set; }
             public int row { get; set; }
 
+            public int ownership { get; set; }
+
             public Point leftUp { get; set; }
             public Point leftDown { get; set; }
             public Point rightUp { get; set; }
             public Point rightDown { get; set; }
 
-            public Field(char column, int row, Point leftUp, Point rightUp, Point leftDown, Point rightDown)
+            public Field(char column, int row, int ownership, Point leftUp, Point rightUp, Point leftDown, Point rightDown)
             {
                 this.column = column;
                 this.row = row;
+
+                this.ownership = ownership;
 
                 this.leftUp = leftUp;
                 this.rightUp = rightUp;
@@ -175,7 +178,7 @@ namespace GuziecCheckers
             VectorOfPointF corners = new VectorOfPointF();
             bool found = CvInvoke.FindChessboardCorners(img, patternSize, corners);
             #endregion
-            #region Aktualizacja położenia pól
+            #region Aktualizacja położenia pól i pionów
             if (corners.Size == Convert.ToInt32(Math.Pow((_size - 1), 2)))
             {
                 _fields.Clear();
@@ -186,43 +189,45 @@ namespace GuziecCheckers
                 for (int i = 0; i < corners.Size - (_size - 1); i++)
                 {
                     if ((i + 1) % (_size - 1) == 0) { column = (char)(Convert.ToUInt16(column) + 1); continue; }
-                    _fields.Add(new Field(column, row++, new Point((int)corners[i].X, (int)corners[i].Y), new Point((int)corners[i + 1].X, (int)corners[i + 1].Y), new Point((int)corners[i + (_size - 1)].X, (int)corners[i + (_size - 1)].Y), new Point((int)corners[i + _size].X, (int)corners[i + _size].Y)));
+                    _fields.Add(new Field(column, row++, 0, new Point((int)corners[i].X, (int)corners[i].Y), new Point((int)corners[i + 1].X, (int)corners[i + 1].Y), new Point((int)corners[i + (_size - 1)].X, (int)corners[i + (_size - 1)].Y), new Point((int)corners[i + _size].X, (int)corners[i + _size].Y)));
 
                     if (row == (_size - 1)) row = 1;
                 }
+
+                #region Aktualizacja położenia pionów
+                Image<Gray, byte> gray1 = img.InRange(PawnsInfo.minColorRange1, PawnsInfo.maxColorRange1);
+                Image<Gray, byte> gray2 = img.InRange(PawnsInfo.minColorRange2, PawnsInfo.maxColorRange2);
+
+                _pawnsPlayer1 = gray1.HoughCircles(new Gray(85), new Gray(40), 2, PawnsInfo.minDistance1, PawnsInfo.minRadius1, PawnsInfo.maxRadius1)[0];
+                _pawnsPlayer2 = gray2.HoughCircles(new Gray(85), new Gray(40), 2, PawnsInfo.minDistance2, PawnsInfo.minRadius2, PawnsInfo.maxRadius2)[0];
+
+                foreach (CircleF pawn in _pawnsPlayer1)
+                {
+                    Point position = new Point((int)pawn.Center.X, (int)pawn.Center.Y);
+
+                    int search = _fields.FindIndex(field => (position.X >= field.leftUp.X && position.X <= field.rightUp.X) && (position.Y >= field.leftUp.Y && position.Y <= field.leftDown.Y));
+                    if (search >= 0) _fields[search] = new Field(_fields[search].column, _fields[search].row, 1, _fields[search].leftUp, _fields[search].rightUp, _fields[search].leftDown, _fields[search].rightDown);
+                }
+
+                foreach (CircleF pawn in _pawnsPlayer2)
+                {
+                    Point position = new Point((int)pawn.Center.X, (int)pawn.Center.Y);
+
+                    int search = _fields.FindIndex(field => (position.X >= field.leftUp.X && position.X <= field.rightUp.X) && (position.Y >= field.leftUp.Y && position.Y <= field.leftDown.Y));
+                    if (search >= 0) _fields[search] = new Field(_fields[search].column, _fields[search].row, 2, _fields[search].leftUp, _fields[search].rightUp, _fields[search].leftDown, _fields[search].rightDown);
+                }
+
+                #endregion
             }
-            #endregion
-            #region Aktualizacja położenia pionów
-
-            double cannyThreshold = 100;
-            double circleAccumulatorThreshold = 100;
-
-            UMat uimage = new UMat();
-            CvInvoke.CvtColor(img.InRange(PawnsInfo.minColorRange1, PawnsInfo.maxColorRange1).Convert<Bgr, byte>(), uimage, ColorConversion.Bgr2Gray);
-
-            UMat pyrDown = new UMat();
-            CvInvoke.PyrDown(uimage, pyrDown);
-            CvInvoke.PyrUp(pyrDown, uimage);
-                 
-            _pawnsPlayer1 = CvInvoke.HoughCircles(uimage, HoughType.Gradient, 2.0, PawnsInfo.minDistance1, cannyThreshold, circleAccumulatorThreshold, PawnsInfo.minRadius1, PawnsInfo.maxRadius1);
-
-            uimage = new UMat();
-            CvInvoke.CvtColor(img.InRange(PawnsInfo.minColorRange2, PawnsInfo.maxColorRange2).Convert<Bgr, byte>(), uimage, ColorConversion.Bgr2Gray);
-
-            pyrDown = new UMat();
-            CvInvoke.PyrDown(uimage, pyrDown);
-            CvInvoke.PyrUp(pyrDown, uimage);
-
-            _pawnsPlayer2 = CvInvoke.HoughCircles(uimage, HoughType.Gradient, 2.0, PawnsInfo.minDistance2, cannyThreshold, circleAccumulatorThreshold, PawnsInfo.minRadius2, PawnsInfo.maxRadius2);
             #endregion
 
             #region Wyświetlanie pól i pionów
             if (drawFields) CvInvoke.DrawChessboardCorners(img, patternSize, corners, found);
 
-            if (drawPawnsPlayer1)
-                foreach (CircleF pawn in _pawnsPlayer1) img.Draw(pawn, new Bgr(0, 255, 0), 1);
-            if (drawPawnsPlayer2)
-                foreach (CircleF pawn in _pawnsPlayer2) img.Draw(pawn, new Bgr(0, 255, 0), 1);
+            if (drawPawnsPlayer1 && _pawnsPlayer1 != null)
+                foreach (CircleF pawn in _pawnsPlayer1) img.Draw(pawn, new Bgr(0, 255, 0), 2);
+            if (drawPawnsPlayer2 && _pawnsPlayer2 != null)
+                foreach (CircleF pawn in _pawnsPlayer2) img.Draw(pawn, new Bgr(0, 255, 0), 2);
             #endregion
         }
 
