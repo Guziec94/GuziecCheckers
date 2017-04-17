@@ -10,6 +10,7 @@
 
     <Grid>
         <Image x:Name="imgPodgladSzachownicy" HorizontalAlignment="Left" Height="400" Width="600" Margin="10,10,0,0" VerticalAlignment="Top"/>
+        <ListBox x:Name="movesList" HorizontalAlignment="Left" Height="194" Margin="10,410,0,0" VerticalAlignment="Top" Width="600"/>
 
     </Grid>
 </Page>

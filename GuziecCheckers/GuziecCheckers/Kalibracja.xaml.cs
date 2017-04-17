@@ -27,13 +27,17 @@ namespace GuziecCheckers
             {
                 Chessboard szachownica = new Chessboard(new Bgr(4, 0, 115), new Bgr(0, 140, 21), new Bgr(98, 93, 255), new Bgr(113, 254, 110), 10.0, 10.0, 14, 14, 18, 18);
 
-                Capture kamera = new Capture(1);
+                Capture kamera = new Capture(0);
                 while (true)
                 {
                     Mat matImage = kamera.QueryFrame();
                     Image<Bgr, byte> obraz = matImage.ToImage<Bgr, byte>();
 
                     szachownica.Calibration(obraz, true, true);
+                    List<string> moves = szachownica.FindMovesOfPlayer(1);
+
+                    foreach (string move in moves)
+                        movesList.Dispatcher.Invoke(() => { movesList.Items.Add(move); });
 
                     imgPodgladSzachownicy.Dispatcher.Invoke(() => { imgPodgladSzachownicy.Source = Tools.ImageToBitmapSource(obraz); });
                 }
@@ -157,12 +161,20 @@ namespace GuziecCheckers
             public static int maxRadius2 { get; set; }
             public static double minDistance2 { get; set; }
         }
+        
+        public struct Move
+        {
+            public char column { get; set; }
+            public int row { get; set; }
+        }
         #endregion
         private int _size;
         private List<Field> _fields;
 
         private CircleF[] _pawnsPlayer1;
         private CircleF[] _pawnsPlayer2;
+
+        private List<string> _moves;
 
         /// <summary>
         /// Metoda kalibrująca zmiany położenia pól szachownicy względem kamery oraz zmiany ułożenia pionów na szachownicy
@@ -262,6 +274,152 @@ namespace GuziecCheckers
             PawnsInfo.maxRadius1 = maxRadius1;
             PawnsInfo.maxRadius2 = maxRadius2;
             #endregion
+        }
+
+        public List<string> FindMovesOfPlayer(int n)
+        {
+            _moves.Clear();
+            foreach (Field field in _fields)
+            {
+                if (field.ownership == n)
+                    FindMoves(field.column, field.row);
+            }
+            return _moves;
+        }
+
+        private void FindMoves(char column, int row, bool recurrence = false)
+        {
+            if (_fields.Exists(f => f.column == column && f.row == row))
+            {
+                Field field = _fields.Find(f => f.column == column && f.row == row);
+
+                #region Lewy górny róg
+                if (_fields.Exists(f => f.column == (column - 1) && f.row == (row + 1)))
+                {
+                    Field next = _fields.Find(f => (f.column == (column - 1) && f.row == (row + 1)));
+
+                    if (next.ownership == 0 && !recurrence)
+                    {
+                        string move = ((char)(column - 1)).ToString() + (row + 1);
+
+                        if (_moves.Exists(s => s.EndsWith((column).ToString() + row)))
+                        {
+                            string path = _moves.Find(s => s.EndsWith(column.ToString() + row));
+                            _moves.Add(path + " " + move);
+                        }
+                        else _moves.Add(column.ToString() + row + " " + move);
+
+                        FindMoves((char)(column - 1), (row + 1), true);
+                    }
+                    else if (next.ownership != field.ownership && _fields.Exists(f => f.column == (column - 2) && f.row == (row + 2)))
+                    {
+                        next = _fields.Find(f => (f.column == (column - 2) && f.row == (row + 2)));
+
+                        if (next.ownership == 0)
+                        {
+                            string move = ((char)(column - 2)).ToString() + (row + 2);
+
+                            if (_moves.Exists(s => s.EndsWith((column).ToString() + row)))
+                            {
+                                string path = _moves.Find(s => s.EndsWith(column.ToString() + row));
+                                _moves.Add(path + " " + move);
+                            }
+                            else _moves.Add(column.ToString() + row + " " + move);
+
+                            FindMoves((char)(column - 2), (row + 2), true);
+                        }
+                    }
+                }
+                #endregion
+                #region Prawy górny róg
+                if (_fields.Exists(f => f.column == (column + 1) && f.row == (row + 1)))
+                {
+                    Field next = _fields.Find(f => (f.column == (column + 1) && f.row == (row + 1)));
+
+                    if (next.ownership == 0 && !recurrence)
+                    {
+                        string move = ((char)(column + 1)).ToString() + (row + 1);
+
+                        if (_moves.Exists(s => s.EndsWith((column).ToString() + row)))
+                        {
+                            string path = _moves.Find(s => s.EndsWith(column.ToString() + row));
+                            _moves.Add(path + " " + move);
+                        }
+                        else _moves.Add(column.ToString() + row + " " + move);
+
+                        FindMoves((char)(column + 1), (row + 1), true);
+                    }
+                    else if (next.ownership != field.ownership && _fields.Exists(f => f.column == (column + 2) && f.row == (row + 2)))
+                    {
+                        next = _fields.Find(f => (f.column == (column + 2) && f.row == (row + 2)));
+
+                        if (next.ownership == 0)
+                        {
+                            string move = ((char)(column + 2)).ToString() + (row + 2);
+
+                            if (_moves.Exists(s => s.EndsWith((column).ToString() + row)))
+                            {
+                                string path = _moves.Find(s => s.EndsWith(column.ToString() + row));
+                                _moves.Add(path + " " + move);
+                            }
+                            else _moves.Add(column.ToString() + row + " " + move);
+
+                            FindMoves((char)(column + 2), (row + 2), true);
+                        }
+                    }
+                }
+                #endregion
+                #region Lewy dolny róg
+                if (_fields.Exists(f => f.column == (column - 1) && f.row == (row - 1)))
+                {
+                    Field next = _fields.Find(f => (f.column == (column - 1) && f.row == (row - 1)));
+
+                    if (next.ownership != field.ownership && _fields.Exists(f => f.column == (column - 2) && f.row == (row - 2)))
+                    {
+                        next = _fields.Find(f => (f.column == (column - 2) && f.row == (row - 2)));
+
+                        if (next.ownership == 0)
+                        {
+                            string move = ((char)(column - 2)).ToString() + (row - 2);
+
+                            if (_moves.Exists(s => s.EndsWith(column.ToString() + row)))
+                            {
+                                string path = _moves.Find(s => s.EndsWith(column.ToString() + row));
+                                _moves.Add(path + " " + move);
+                            }
+                            else _moves.Add(column.ToString() + row + " " + move);
+
+                            FindMoves((char)(column - 2), (row - 2), true);
+                        }
+                    }
+                }
+                #endregion
+                #region Prawy dolny róg
+                if (_fields.Exists(f => f.column == (column + 1) && f.row == (row - 1)))
+                {
+                    Field next = _fields.Find(f => (f.column == (column + 1) && f.row == (row - 1)));
+
+                    if (next.ownership != field.ownership && _fields.Exists(f => f.column == (column + 2) && f.row == (row - 2)))
+                    {
+                        next = _fields.Find(f => (f.column == (column + 2) && f.row == (row - 2)));
+
+                        if (next.ownership == 0)
+                        {
+                            string move = ((char)(column + 2)).ToString() + (row - 2);
+
+                            if (_moves.Exists(s => s.EndsWith(column.ToString() + row)))
+                            {
+                                string path = _moves.Find(s => s.EndsWith(column.ToString() + row));
+                                _moves.Add(path + " " + move);
+                            }
+                            else _moves.Add(column.ToString() + row + " " + move);
+
+                            FindMoves((char)(column + 2), (row - 2), true);
+                        }
+                    }
+                }
+                #endregion
+            }
         }
     }
 }
