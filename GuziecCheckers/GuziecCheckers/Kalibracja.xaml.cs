@@ -19,26 +19,7 @@ namespace GuziecCheckers
     /// </summary>
     public partial class Kalibracja : Page
     {
-        private struct Field
-        {
-            public Point LeftUp { get; set; }
-            public Point LeftDown { get; set; }
-            public Point RightUp { get; set; }
-            public Point RightDown { get; set; }
-
-            public Field(Point LeftUp, Point RightUp, Point LeftDown, Point RightDown)
-            {
-                this.LeftUp = LeftUp;
-                this.RightUp = RightUp;
-                this.LeftDown = LeftDown;   
-                this.RightDown = RightDown;
-            }
-        }
-
-        private List<Field> Chessboard = new List<Field>();
-
         public static Thread t = null;
-
         #region Ciało wątku przetwarzającego obraz napływający z kamery
         private void w()
         {
@@ -50,10 +31,8 @@ namespace GuziecCheckers
                 {
                     Mat matImage = kamera.QueryFrame();
                     Image<Bgr, byte> obraz = matImage.ToImage<Bgr, byte>();
-
-                    findFields(obraz);
-
-                    imgPodgladSzachownicy.Dispatcher.Invoke(() => { imgPodgladSzachownicy.Source = BitmapSourceConvert.ImageToBitmapSource(obraz); });
+                   
+                    imgPodgladSzachownicy.Dispatcher.Invoke(() => { imgPodgladSzachownicy.Source = Tools.ImageToBitmapSource(obraz); });
                 }
             }
             catch (Exception ex)
@@ -72,76 +51,10 @@ namespace GuziecCheckers
             t.Start();
             #endregion
         }
-
-        /// <summary>
-        /// Funkcja wyszukująca we wskazanym obrazie okręgi znajdujące się w zdefiniowanym zakresie kolorystycznym, zdefeniowanej odległości pomiędzy pojedynczymi egzemplarzami oraz zdefiniowanym zakresie długości promienia
-        /// </summary>
-        /// <param name="img">Przeszukiwany obraz</param>
-        /// <param name="min">Dolny zakres kolorystyki wyszukiwanych okręgów</param>
-        /// <param name="max">Górny zakres kolorystyki wyszukiwanych okręgów</param>
-        /// <param name="DistanceMin">Minimalna odległość pomiędzy środkami znajdywanych okręgów</param>
-        /// <param name="radiusMin">Minimalna długość promienia wyszukiwanych okręgów</param>
-        /// <param name="radiusMax">Maksymalna długość promienia wyszukiwanych okręgów</param>
-        /// <returns></returns>
-        private CircleF[] findCircles(Image<Bgr, byte> img, Bgr min, Bgr max, double DistanceMin = 20.0, int radiusMin = 20, int radiusMax = 30)
-        {
-            UMat uimage = new UMat();
-            CvInvoke.CvtColor(img.InRange(min, max).Convert<Bgr, byte>(), uimage, ColorConversion.Bgr2Gray);
-
-            UMat pyrDown = new UMat();
-            CvInvoke.PyrDown(uimage, pyrDown);
-            CvInvoke.PyrUp(pyrDown, uimage);
-
-            double cannyThreshold = 100;
-            double circleAccumulatorThreshold = 100;
-            CircleF[] circles = CvInvoke.HoughCircles(uimage, HoughType.Gradient, 2.0, DistanceMin, cannyThreshold, circleAccumulatorThreshold, radiusMin, radiusMax);
-
-            return circles;
-        }
-
-        /// <summary>
-        /// Funkcja kalibrująca zmiany położenia szachownicy względem kamery
-        /// </summary>
-        /// <param name="img">Przeszukiwany obraz</param>
-        /// <param name="size">Rozmiar szachownicy (Liczność pól boku szachownicy)</param>
-        /// <param name="draw">Rysuje punkty wskazujące położenie pól szachownicy</param>
-        /// <returns></returns>
-        private VectorOfPointF calibrationCamera(Image<Bgr, byte> img, int size = 10, bool draw = false)
-        {
-            Size patternSize = new Size((size - 1), (size - 1));
-
-            VectorOfPointF corners = new VectorOfPointF();
-            bool found = CvInvoke.FindChessboardCorners(img, patternSize, corners);
-
-            if(draw) CvInvoke.DrawChessboardCorners(img, patternSize, corners, found);
-
-            return corners;
-        }
-
-        /// <summary>
-        /// Funkcja wyszukującawe wskazanym obrazie pozycje pól szachownicy jeśli wszystkie punkty kalibracyjne zostały odnalezione
-        /// </summary>
-        /// <param name="img">Przeszukiwany obraz</param>
-        /// <param name="size">Rozmiar szachownicy (Liczność pól boku szachownicy)</param>
-        private void findFields(Image<Bgr, byte> img, int size = 10)
-        {
-            int liczbaWymaganychPunktow = Convert.ToInt32(Math.Pow((size - 1), 2));
-
-            VectorOfPointF znalezionePunkty = calibrationCamera(img, size);
-            if (znalezionePunkty.Size == liczbaWymaganychPunktow)
-            {
-                Chessboard.Clear();
-                for(int i = 0; i < znalezionePunkty.Size - (size - 1); i++)
-                {         
-                    if ((i + 1) % (size - 1) == 0) continue;
-                    Chessboard.Add(new Field(new Point((int)znalezionePunkty[i].X, (int)znalezionePunkty[i].Y), new Point((int)znalezionePunkty[i+1].X, (int)znalezionePunkty[i+1].Y), new Point((int)znalezionePunkty[i+(size-1)].X, (int)znalezionePunkty[i + (size - 1)].Y), new Point((int)znalezionePunkty[i + size].X, (int)znalezionePunkty[i + size].Y)));
-                }
-            }
-        }
     }
 
     #region Klasa z metodami ułatwiającymi konwersję obrazu
-    public static class BitmapSourceConvert
+    public static class Tools
     {
         [DllImport("gdi32")]
         private static extern int DeleteObject(IntPtr o);
@@ -198,4 +111,136 @@ namespace GuziecCheckers
     }
     #endregion
 
+    public class Chessboard
+    {
+        #region Struktury itp
+        private struct Field
+        {
+            public Point leftUp { get; set; }
+            public Point leftDown { get; set; }
+            public Point rightUp { get; set; }
+            public Point rightDown { get; set; }
+
+            public Field(Point leftUp, Point rightUp, Point leftDown, Point rightDown)
+            {
+                this.leftUp = leftUp;
+                this.rightUp = rightUp;
+                this.leftDown = leftDown;
+                this.rightDown = rightDown;
+            }
+        }
+
+        private struct PawnsInfo
+        {
+            public static Bgr minColorRange1 { get; set; }
+            public static Bgr maxColorRange1 { get; set; }
+            public static int minRadius1 { get; set; }
+            public static int maxRadius1 { get; set; }
+            public static double minDistance1 { get; set; }
+
+            public static Bgr minColorRange2 { get; set; }
+            public static Bgr maxColorRange2 { get; set; }
+            public static int minRadius2 { get; set; }
+            public static int maxRadius2 { get; set; }
+            public static double minDistance2 { get; set; }
+        }
+        #endregion
+        private int _size;
+        private List<Field> _fields;
+
+        private CircleF[] _pawnsPlayer1;
+        private CircleF[] _pawnsPlayer2;
+
+        /// <summary>
+        /// Metoda kalibrująca zmiany położenia pól szachownicy względem kamery oraz zmiany ułożenia pionów na szachownicy
+        /// </summary>
+        /// <param name="img">Przeszukiwany obraz</param>
+        /// <param name="draw">Rysuje punkty wskazujące położenie pól szachownicy</param>
+        /// <returns></returns>
+        public void Calibration(Image<Bgr, byte> img, bool drawFields = false, bool drawPawnsPlayer1 = false, bool drawPawnsPlayer2 = false)
+        {
+            #region Kalibracja kamery
+            Size patternSize = new Size((_size - 1), (_size - 1));
+
+            VectorOfPointF corners = new VectorOfPointF();
+            bool found = CvInvoke.FindChessboardCorners(img, patternSize, corners);
+            #endregion
+            #region Aktualizacja położenia pól
+            if (corners.Size == Convert.ToInt32(Math.Pow((_size - 1), 2)))
+            {
+                _fields.Clear();
+                for (int i = 0; i < corners.Size - (_size - 1); i++)
+                {
+                    if ((i + 1) % (_size - 1) == 0) continue;
+                    _fields.Add(new Field(new Point((int)corners[i].X, (int)corners[i].Y), new Point((int)corners[i + 1].X, (int)corners[i + 1].Y), new Point((int)corners[i + (_size - 1)].X, (int)corners[i + (_size - 1)].Y), new Point((int)corners[i + _size].X, (int)corners[i + _size].Y)));
+                }
+            }
+            #endregion
+            #region Aktualizacja położenia pionów
+
+            double cannyThreshold = 100;
+            double circleAccumulatorThreshold = 100;
+
+            UMat uimage = new UMat();
+            CvInvoke.CvtColor(img.InRange(PawnsInfo.minColorRange1, PawnsInfo.maxColorRange1).Convert<Bgr, byte>(), uimage, ColorConversion.Bgr2Gray);
+
+            UMat pyrDown = new UMat();
+            CvInvoke.PyrDown(uimage, pyrDown);
+            CvInvoke.PyrUp(pyrDown, uimage);
+                 
+            _pawnsPlayer1 = CvInvoke.HoughCircles(uimage, HoughType.Gradient, 2.0, PawnsInfo.minDistance1, cannyThreshold, circleAccumulatorThreshold, PawnsInfo.minRadius1, PawnsInfo.maxRadius1);
+
+            uimage = new UMat();
+            CvInvoke.CvtColor(img.InRange(PawnsInfo.minColorRange2, PawnsInfo.maxColorRange2).Convert<Bgr, byte>(), uimage, ColorConversion.Bgr2Gray);
+
+            pyrDown = new UMat();
+            CvInvoke.PyrDown(uimage, pyrDown);
+            CvInvoke.PyrUp(pyrDown, uimage);
+
+            _pawnsPlayer2 = CvInvoke.HoughCircles(uimage, HoughType.Gradient, 2.0, PawnsInfo.minDistance2, cannyThreshold, circleAccumulatorThreshold, PawnsInfo.minRadius2, PawnsInfo.maxRadius2);
+            #endregion
+
+            #region Wyświetlanie pól i pionów
+            if (drawFields) CvInvoke.DrawChessboardCorners(img, patternSize, corners, found);
+
+            if (drawPawnsPlayer1)
+                foreach (CircleF pawn in _pawnsPlayer1) img.Draw(pawn, new Bgr(0, 255, 0), 1);
+            if (drawPawnsPlayer2)
+                foreach (CircleF pawn in _pawnsPlayer2) img.Draw(pawn, new Bgr(0, 255, 0), 1);
+            #endregion
+        }
+
+        /// <summary>
+        /// Konstruktor klasy reprezentującej obiekt szachownicy
+        /// </summary>
+        /// <param name="minColorRange1">Dolny zakres koloru pionów pierwszego gracza</param>
+        /// <param name="minColorRange2">Dolny zakres koloru pionów drugiego gracza</param>
+        /// <param name="maxColorRange1">Górny zakres koloru pionów pierwszego gracza</param>
+        /// <param name="maxColorRange2">Górny zakres koloru pionów drugiego gracza</param>
+        /// <param name="minDistance1">Minimalny dystans pomiędzy pionami pierwszego gracza</param>
+        /// <param name="minDistance2">Minimalny dystans pomiędzy pionami drugiego gracza</param>
+        /// <param name="minRadius1">Dolny zakres długości promienia pionów pierwszego gracza</param>
+        /// <param name="minRadius2">Dolny zakres długości promienia pionów drugiego gracza</param>
+        /// <param name="maxRadius1">Górny zakres długości promienia pionów pierwszego gracza</param>
+        /// <param name="maxRadius2">Górny zakres długości promienia pionów drugiego gracza</param>
+        /// <param name="size"></param>
+        public Chessboard(Bgr minColorRange1, Bgr minColorRange2, Bgr maxColorRange1, Bgr maxColorRange2, double minDistance1, double minDistance2, int minRadius1, int minRadius2, int maxRadius1, int maxRadius2, int size = 10)
+        {
+            _size = size;
+            _fields = new List<Field>();
+
+            #region Uzupełnienie danych na temat pionów graczy
+            PawnsInfo.minColorRange1 = minColorRange1;
+            PawnsInfo.minColorRange2 = minColorRange2;
+            PawnsInfo.maxColorRange1 = maxColorRange1;
+            PawnsInfo.maxColorRange2 = maxColorRange2;
+            PawnsInfo.minDistance1 = minDistance1;
+            PawnsInfo.minDistance2 = minDistance2;
+            PawnsInfo.minRadius1 = minRadius1;
+            PawnsInfo.minRadius2 = minRadius2;
+            PawnsInfo.maxRadius1 = maxRadius1;
+            PawnsInfo.maxRadius2 = maxRadius2;
+            #endregion
+        }
+    }
 }
