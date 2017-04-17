@@ -19,29 +19,27 @@ namespace GuziecCheckers
     public partial class Kalibracja : Page
     {
         public static Thread t = null;
-
+        
         #region Ciało wątku przetwarzającego obraz napływający z kamery
         private void w()
         {
             try
             {
-                Chessboard szachownica = new Chessboard(new Bgr(4, 0, 115), new Bgr(0, 140, 21), new Bgr(98, 93, 255), new Bgr(113, 254, 110), 10.0, 10.0, 14, 14, 18, 18);
+                //Chessboard szachownica = new Chessboard(new Bgr(4, 0, 115), new Bgr(0, 140, 21), new Bgr(98, 93, 255), new Bgr(113, 254, 110), 10.0, 10.0, 14, 14, 18, 18);
 
-                Capture kamera = new Capture(1);
+                Capture kamera = new Capture(0);
                 while (true)
                 {
                     Mat matImage = kamera.QueryFrame();
                     Image<Bgr, byte> obraz = matImage.ToImage<Bgr, byte>();
 
-                    szachownica.Calibration(obraz, true, true);
+                    //szachownica.Calibration(obraz, true, true);
 
-                    List<string> moves = szachownica.FindMoves(1);
+                    Image<Gray, byte> gray1 = obraz.InRange(Chessboard.PawnsInfo.minColorRange1, Chessboard.PawnsInfo.maxColorRange1);
+                    Image<Gray, byte> gray2 = obraz.InRange(Chessboard.PawnsInfo.minColorRange2, Chessboard.PawnsInfo.maxColorRange2);
 
-                    movesList.Dispatcher.Invoke(() => { movesList.Items.Clear(); });
-                    foreach (string move in moves)
-                        movesList.Dispatcher.Invoke(() => { movesList.Items.Add(move); });
-
-                    imgViewChessboad.Dispatcher.Invoke(() => { imgViewChessboad.Source = Tools.ImageToBitmapSource(obraz); });
+                    view1.Dispatcher.Invoke(() => { view1.Source = Tools.ImageToBitmapSource(gray1); });
+                    view2.Dispatcher.Invoke(() => { view2.Source = Tools.ImageToBitmapSource(gray2); });
                 }
             }
             catch (Exception /*ex*/)
@@ -59,6 +57,18 @@ namespace GuziecCheckers
             t = new Thread(w);
             t.Start();
             #endregion
+        }
+
+        private void PxColor_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                Chessboard.PawnsInfo.minColorRange1 = new Bgr(Convert.ToInt32(P1Bmin.Text), Convert.ToInt32(P1Gmin.Text), Convert.ToInt32(P1Rmin.Text));
+                Chessboard.PawnsInfo.maxColorRange1 = new Bgr(Convert.ToInt32(P1Bmax.Text), Convert.ToInt32(P1Gmax.Text), Convert.ToInt32(P1Rmax.Text));
+                Chessboard.PawnsInfo.minColorRange2 = new Bgr(Convert.ToInt32(P2Bmin.Text), Convert.ToInt32(P2Gmin.Text), Convert.ToInt32(P2Rmin.Text));
+                Chessboard.PawnsInfo.maxColorRange2 = new Bgr(Convert.ToInt32(P2Bmax.Text), Convert.ToInt32(P2Gmax.Text), Convert.ToInt32(P2Rmax.Text));
+            }
+            catch (Exception) { }
         }
     }
 
@@ -149,7 +159,7 @@ namespace GuziecCheckers
             }
         }
 
-        private struct PawnsInfo
+        public struct PawnsInfo
         {
             public static Bgr minColorRange1 { get; set; }
             public static Bgr maxColorRange1 { get; set; }

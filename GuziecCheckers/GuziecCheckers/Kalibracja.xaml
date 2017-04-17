@@ -2,15 +2,33 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:local="clr-namespace:GuziecCheckers"
       mc:Ignorable="d" 
       d:DesignHeight="650" d:DesignWidth="825"
       Title="Kalibracja">
 
     <Grid>
-        <Image x:Name="imgViewChessboad" HorizontalAlignment="Left" Height="400" Width="600" Margin="10,10,0,0" VerticalAlignment="Top"/>
-        <ListBox x:Name="movesList" x:FieldModifier="public" HorizontalAlignment="Left" Height="194" Margin="10,410,0,0" VerticalAlignment="Top" Width="600"/>
-
+        <Border Margin="10,10,0,0" BorderThickness="1" BorderBrush="#ABABADB3" VerticalAlignment="Top" HorizontalAlignment="Left">
+            <Image x:Name="view1" HorizontalAlignment="Left" Height="250" VerticalAlignment="Top" Width="333"/>
+        </Border>
+        <Border Margin="10,267,0,0" BorderThickness="1" BorderBrush="#FFABADB3" VerticalAlignment="Top" HorizontalAlignment="Left">
+            <Image x:Name="view2" HorizontalAlignment="Left" Height="250" VerticalAlignment="Top" Width="333"/>
+        </Border>
+        <TextBox x:Name="P1Rmin" HorizontalAlignment="Left" Height="30" Margin="358,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="60" Text="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" TextChanged="PxColor_TextChanged"/>
+        <TextBox x:Name="P1Gmin" HorizontalAlignment="Left" Height="30" Margin="358,45,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="60" Text="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" TextChanged="PxColor_TextChanged"/>
+        <TextBox x:Name="P1Bmin" HorizontalAlignment="Left" Height="30" Margin="358,80,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="60" Text="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" TextChanged="PxColor_TextChanged"/>
+        <TextBox x:Name="P1Rmax" HorizontalAlignment="Left" Height="30" Margin="433,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="60" Text="255" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" TextChanged="PxColor_TextChanged"/>
+        <TextBox x:Name="P1Gmax" HorizontalAlignment="Left" Height="30" Margin="433,45,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="60" Text="255" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" TextChanged="PxColor_TextChanged"/>
+        <TextBox x:Name="P1Bmax" HorizontalAlignment="Left" Height="30" Margin="433,80,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="60" Text="255" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" TextChanged="PxColor_TextChanged"/>
+        <TextBox x:Name="P2Rmin" HorizontalAlignment="Left" Height="30" Margin="358,267,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="60" Text="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" TextChanged="PxColor_TextChanged"/>
+        <TextBox x:Name="P2Gmin" HorizontalAlignment="Left" Height="30" Margin="358,302,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="60" Text="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" TextChanged="PxColor_TextChanged"/>
+        <TextBox x:Name="P2Bmin" HorizontalAlignment="Left" Height="30" Margin="358,337,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="60" Text="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" TextChanged="PxColor_TextChanged"/>
+        <TextBox x:Name="P2Rmax" HorizontalAlignment="Left" Height="30" Margin="433,267,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="60" Text="255" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" TextChanged="PxColor_TextChanged"/>
+        <TextBox x:Name="P2Gmax" HorizontalAlignment="Left" Height="30" Margin="433,302,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="60" Text="255" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" TextChanged="PxColor_TextChanged"/>
+        <TextBox x:Name="P2Bmax" HorizontalAlignment="Left" Height="30" Margin="433,337,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="60" Text="255" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" TextChanged="PxColor_TextChanged"/>
+        <Button x:Name="button" Content="Zapisz konfigurację" HorizontalAlignment="Left" Margin="10,524,0,0" VerticalAlignment="Top" Width="335" Height="80" Background="White" BorderBrush="#FFABADB3"/>
+        <TextBlock TextWrapping="WrapWithOverflow" Margin="557,10,60,540" FontSize="24"><Run Text="Rozpoznawanie zwykłych pionów"/><Run Text=".."/></TextBlock>
+        <TextBlock TextWrapping="WrapWithOverflow" Margin="557,115,60,131" FontSize="14"><Run Text="Krok 1: Piony gracza nr 1 rozmieść na pozycjach: A1, B8, E5, G1, H8"/><LineBreak/><Run/><LineBreak/><Run Text="Krok 2: Piony gracza nr 2 rozmieść"/><Run Text=" na pozycjach: A7, B2, D4, G7, H2"/><LineBreak/><Run/><LineBreak/><Run Text="Krok 3: Zmień zakres wartości liczbowych odpowiadający udziałom składowych RGB  w kolorystyce pionów graczy"/><LineBreak/><Run/><LineBreak/><Run Text="Krok 4: Gdy wszystkie piony graczy zostaną rozpoznane poprawnie, wciśnij przycisk 'Zapisz konfigurację'"/></TextBlock>
     </Grid>
 </Page>
