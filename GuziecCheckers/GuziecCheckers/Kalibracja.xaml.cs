@@ -3,6 +3,7 @@ using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -10,7 +11,6 @@ using System.Threading;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace GuziecCheckers
 {
@@ -19,21 +19,23 @@ namespace GuziecCheckers
     /// </summary>
     public partial class Kalibracja : Page
     {
-        struct Field
+        private struct Field
         {
-            Point LeftUp { get; set; }
-            Point LeftDown { get; set; }
-            Point RightUp { get; set; }
-            Point RightDown { get; set; }
+            public Point LeftUp { get; set; }
+            public Point LeftDown { get; set; }
+            public Point RightUp { get; set; }
+            public Point RightDown { get; set; }
 
-            Field(Point LeftUp, Point LeftDown, Point RightUp, Point RightDown)
+            public Field(Point LeftUp, Point RightUp, Point LeftDown, Point RightDown)
             {
                 this.LeftUp = LeftUp;
-                this.LeftDown = LeftDown;
                 this.RightUp = RightUp;
+                this.LeftDown = LeftDown;   
                 this.RightDown = RightDown;
             }
         }
+
+        private List<Field> Chessboard = new List<Field>();
 
         public static Thread t = null;
 
@@ -48,6 +50,8 @@ namespace GuziecCheckers
                 {
                     Mat matImage = kamera.QueryFrame();
                     Image<Bgr, byte> obraz = matImage.ToImage<Bgr, byte>();
+
+                    findFields(obraz);
 
                     imgPodgladSzachownicy.Dispatcher.Invoke(() => { imgPodgladSzachownicy.Source = BitmapSourceConvert.ImageToBitmapSource(obraz); });
                 }
@@ -112,6 +116,27 @@ namespace GuziecCheckers
             if(draw) CvInvoke.DrawChessboardCorners(img, patternSize, corners, found);
 
             return corners;
+        }
+
+        /// <summary>
+        /// Funkcja wyszukującawe wskazanym obrazie pozycje pól szachownicy jeśli wszystkie punkty kalibracyjne zostały odnalezione
+        /// </summary>
+        /// <param name="img">Przeszukiwany obraz</param>
+        /// <param name="size">Rozmiar szachownicy (Liczność pól boku szachownicy)</param>
+        private void findFields(Image<Bgr, byte> img, int size = 10)
+        {
+            int liczbaWymaganychPunktow = Convert.ToInt32(Math.Pow((size - 1), 2));
+
+            VectorOfPointF znalezionePunkty = calibrationCamera(img, size);
+            if (znalezionePunkty.Size == liczbaWymaganychPunktow)
+            {
+                Chessboard.Clear();
+                for(int i = 0; i < znalezionePunkty.Size - (size - 1); i++)
+                {         
+                    if ((i + 1) % (size - 1) == 0) continue;
+                    Chessboard.Add(new Field(new Point((int)znalezionePunkty[i].X, (int)znalezionePunkty[i].Y), new Point((int)znalezionePunkty[i+1].X, (int)znalezionePunkty[i+1].Y), new Point((int)znalezionePunkty[i+(size-1)].X, (int)znalezionePunkty[i + (size - 1)].Y), new Point((int)znalezionePunkty[i + size].X, (int)znalezionePunkty[i + size].Y)));
+                }
+            }
         }
     }
 
