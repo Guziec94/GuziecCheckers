@@ -27,24 +27,26 @@ namespace GuziecCheckers
             {
                 Chessboard szachownica = new Chessboard(new Bgr(4, 0, 115), new Bgr(0, 140, 21), new Bgr(98, 93, 255), new Bgr(113, 254, 110), 10.0, 10.0, 14, 14, 18, 18);
 
-                Capture kamera = new Capture(0);
+                Capture kamera = new Capture(1);
                 while (true)
                 {
                     Mat matImage = kamera.QueryFrame();
                     Image<Bgr, byte> obraz = matImage.ToImage<Bgr, byte>();
 
                     szachownica.Calibration(obraz, true, true);
-                    List<string> moves = szachownica.FindMovesOfPlayer(1);
 
+                    List<string> moves = szachownica.FindMoves(1);
+
+                    movesList.Dispatcher.Invoke(() => { movesList.Items.Clear(); });
                     foreach (string move in moves)
                         movesList.Dispatcher.Invoke(() => { movesList.Items.Add(move); });
 
-                    imgPodgladSzachownicy.Dispatcher.Invoke(() => { imgPodgladSzachownicy.Source = Tools.ImageToBitmapSource(obraz); });
+                    imgViewChessboad.Dispatcher.Invoke(() => { imgViewChessboad.Source = Tools.ImageToBitmapSource(obraz); });
                 }
             }
-            catch (Exception ex)
+            catch (Exception /*ex*/)
             {
-                System.Windows.MessageBox.Show(ex.Message);
+                //System.Windows.MessageBox.Show(ex.Message);
             }
         }
         #endregion
@@ -121,7 +123,7 @@ namespace GuziecCheckers
     public class Chessboard
     {
         #region Struktury itp
-        private struct Field
+        public struct Field
         {
             public char column { get; set; }
             public int row { get; set; }
@@ -228,7 +230,6 @@ namespace GuziecCheckers
                     int search = _fields.FindIndex(field => (position.X >= field.leftUp.X && position.X <= field.rightUp.X) && (position.Y >= field.leftUp.Y && position.Y <= field.leftDown.Y));
                     if (search >= 0) _fields[search] = new Field(_fields[search].column, _fields[search].row, 2, _fields[search].leftUp, _fields[search].rightUp, _fields[search].leftDown, _fields[search].rightDown);
                 }
-
                 #endregion
             }
             #endregion
@@ -261,6 +262,7 @@ namespace GuziecCheckers
         {
             _size = size;
             _fields = new List<Field>();
+            _moves = new List<string>();
 
             #region Uzupełnienie danych na temat pionów graczy
             PawnsInfo.minColorRange1 = minColorRange1;
@@ -276,149 +278,207 @@ namespace GuziecCheckers
             #endregion
         }
 
-        public List<string> FindMovesOfPlayer(int n)
+        /// <summary>
+        /// Funkcja zwracająca listę stringów reprezentujących możliwe sekwencje ruchów dla wskazanego w parametrze gracza
+        /// </summary>
+        /// <param name="n">Numer gracza (1 lub 2)</param>
+        /// <returns>Lista stringów reprezentujących możliwe sekwencje ruchów gracza</returns>
+        public List<string> FindMoves(int n)
         {
             _moves.Clear();
-            foreach (Field field in _fields)
+
+            if (n == 1 || n == 2)
             {
-                if (field.ownership == n)
-                    FindMoves(field.column, field.row);
+                List<Field> fields = new List<Field>(_fields);
+                FindMoves(n, fields);
+
+                if (n == 1) _moves.RemoveAll(m => m.Length == 5 && m[1] > m[4] && m[1] - m[4] == 1);
+                else _moves.RemoveAll(m => m.Length == 5 && m[4] > m[1] && m[4] - m[1] == 1);
             }
+
             return _moves;
         }
 
-        private void FindMoves(char column, int row, bool recurrence = false)
-        {
-            if (_fields.Exists(f => f.column == column && f.row == row))
+        /// <summary>
+        /// Funkcja wykorzystywana przy wyznaczaniu możliwych do wykonania przez gracza ruchów
+        /// </summary>
+        /// <param name="n">Numer gracza (1 lub 2)</param>
+        /// <param name="fields">Lista pól reprezentujących szachownicę</param>
+        /// <param name="recurrence">Zmienna pomocnicza, używana w rekurencji</param>
+        private void FindMoves(int n, List<Field> fields, bool recurrence = false)
+        {         
+            foreach (Field field in fields)
             {
-                Field field = _fields.Find(f => f.column == column && f.row == row);
-
-                #region Lewy górny róg
-                if (_fields.Exists(f => f.column == (column - 1) && f.row == (row + 1)))
+                if (field.ownership == n)
                 {
-                    Field next = _fields.Find(f => (f.column == (column - 1) && f.row == (row + 1)));
+                    string current = field.column.ToString() + field.row;
+                    int index = _moves.FindIndex(m => m.IndexOf(current) == m.Length - current.Length);
 
-                    if (next.ownership == 0 && !recurrence)
+                    #region Lewy górny róg
+                    Predicate<Field> upLeft = f => f.column == (field.column - 1) && f.row == (field.row + 1);
+
+                    if (fields.Exists(upLeft))
                     {
-                        string move = ((char)(column - 1)).ToString() + (row + 1);
+                        Field next = fields.Find(upLeft);
 
-                        if (_moves.Exists(s => s.EndsWith((column).ToString() + row)))
+                        if (next.ownership == 0 && !recurrence)
                         {
-                            string path = _moves.Find(s => s.EndsWith(column.ToString() + row));
-                            _moves.Add(path + " " + move);
+                            string move = next.column.ToString() + next.row;
+
+                            if (index >= 0) _moves.Add(_moves[index] + " " + move);
+                            else _moves.Add(current + " " + move);
                         }
-                        else _moves.Add(column.ToString() + row + " " + move);
-
-                        FindMoves((char)(column - 1), (row + 1), true);
-                    }
-                    else if (next.ownership != field.ownership && _fields.Exists(f => f.column == (column - 2) && f.row == (row + 2)))
-                    {
-                        next = _fields.Find(f => (f.column == (column - 2) && f.row == (row + 2)));
-
-                        if (next.ownership == 0)
+                        else if (next.ownership > 0 && next.ownership != field.ownership)
                         {
-                            string move = ((char)(column - 2)).ToString() + (row + 2);
+                            upLeft = f => f.column == (next.column - 1) && f.row == (next.row + 1);
 
-                            if (_moves.Exists(s => s.EndsWith((column).ToString() + row)))
+                            if(_fields.Exists(upLeft))
                             {
-                                string path = _moves.Find(s => s.EndsWith(column.ToString() + row));
-                                _moves.Add(path + " " + move);
+                                Field doubleNext = _fields.Find(upLeft);
+
+                                if (doubleNext.ownership == 0)
+                                {
+                                    string move = doubleNext.column.ToString() + doubleNext.row;
+
+                                    if (index >= 0) _moves.Add(_moves[index] + " " + move);
+                                    else _moves.Add(current + " " + move);
+
+                                    List<Field> copy = new List<Field>(fields);
+
+                                    copy[copy.IndexOf(field)] = new Field(field.column, field.row, 0, field.leftUp, field.rightUp, field.leftDown, field.rightDown);
+                                    copy[copy.IndexOf(next)] = new Field(next.column, next.row, 0, next.leftUp, next.rightUp, next.leftDown, next.rightDown);
+                                    copy[copy.IndexOf(doubleNext)] = new Field(doubleNext.column, doubleNext.row, n, doubleNext.leftUp, doubleNext.rightUp, doubleNext.leftDown, doubleNext.rightDown);
+
+                                    FindMoves(n, copy, true);
+                                }
                             }
-                            else _moves.Add(column.ToString() + row + " " + move);
-
-                            FindMoves((char)(column - 2), (row + 2), true);
                         }
                     }
-                }
-                #endregion
-                #region Prawy górny róg
-                if (_fields.Exists(f => f.column == (column + 1) && f.row == (row + 1)))
-                {
-                    Field next = _fields.Find(f => (f.column == (column + 1) && f.row == (row + 1)));
+                    #endregion
+                    #region Prawy górny róg
+                    Predicate<Field> upRight = f => f.column == (field.column + 1) && f.row == (field.row + 1);
 
-                    if (next.ownership == 0 && !recurrence)
+                    if (fields.Exists(upRight))
                     {
-                        string move = ((char)(column + 1)).ToString() + (row + 1);
+                        Field next = fields.Find(upRight);
 
-                        if (_moves.Exists(s => s.EndsWith((column).ToString() + row)))
+                        if (next.ownership == 0 && !recurrence)
                         {
-                            string path = _moves.Find(s => s.EndsWith(column.ToString() + row));
-                            _moves.Add(path + " " + move);
+                            string move = next.column.ToString() + next.row;
+
+                            if (index >= 0) _moves.Add(_moves[index] + " " + move);
+                            else _moves.Add(current + " " + move);
                         }
-                        else _moves.Add(column.ToString() + row + " " + move);
-
-                        FindMoves((char)(column + 1), (row + 1), true);
-                    }
-                    else if (next.ownership != field.ownership && _fields.Exists(f => f.column == (column + 2) && f.row == (row + 2)))
-                    {
-                        next = _fields.Find(f => (f.column == (column + 2) && f.row == (row + 2)));
-
-                        if (next.ownership == 0)
+                        else if (next.ownership > 0 && next.ownership != field.ownership)
                         {
-                            string move = ((char)(column + 2)).ToString() + (row + 2);
+                            upRight = f => f.column == (next.column + 1) && f.row == (next.row + 1);
 
-                            if (_moves.Exists(s => s.EndsWith((column).ToString() + row)))
+                            if (_fields.Exists(upRight))
                             {
-                                string path = _moves.Find(s => s.EndsWith(column.ToString() + row));
-                                _moves.Add(path + " " + move);
-                            }
-                            else _moves.Add(column.ToString() + row + " " + move);
+                                Field doubleNext = _fields.Find(upRight);
 
-                            FindMoves((char)(column + 2), (row + 2), true);
+                                if (doubleNext.ownership == 0)
+                                {
+                                    string move = doubleNext.column.ToString() + doubleNext.row;
+
+                                    if (index >= 0) _moves.Add(_moves[index] + " " + move);
+                                    else _moves.Add(current + " " + move);
+
+                                    List<Field> copy = new List<Field>(fields);
+
+                                    copy[copy.IndexOf(field)] = new Field(field.column, field.row, 0, field.leftUp, field.rightUp, field.leftDown, field.rightDown);
+                                    copy[copy.IndexOf(next)] = new Field(next.column, next.row, 0, next.leftUp, next.rightUp, next.leftDown, next.rightDown);
+                                    copy[copy.IndexOf(doubleNext)] = new Field(doubleNext.column, doubleNext.row, n, doubleNext.leftUp, doubleNext.rightUp, doubleNext.leftDown, doubleNext.rightDown);
+
+                                    FindMoves(n, copy, true);
+                                }
+                            }
                         }
                     }
-                }
-                #endregion
-                #region Lewy dolny róg
-                if (_fields.Exists(f => f.column == (column - 1) && f.row == (row - 1)))
-                {
-                    Field next = _fields.Find(f => (f.column == (column - 1) && f.row == (row - 1)));
+                    #endregion
+                    #region Prawy dolny róg
+                    Predicate<Field> downRight = f => f.column == (field.column + 1) && f.row == (field.row - 1);
 
-                    if (next.ownership != field.ownership && _fields.Exists(f => f.column == (column - 2) && f.row == (row - 2)))
+                    if (fields.Exists(downRight))
                     {
-                        next = _fields.Find(f => (f.column == (column - 2) && f.row == (row - 2)));
+                        Field next = fields.Find(downRight);
 
-                        if (next.ownership == 0)
+                        if (next.ownership == 0 && !recurrence)
                         {
-                            string move = ((char)(column - 2)).ToString() + (row - 2);
+                            string move = next.column.ToString() + next.row;
 
-                            if (_moves.Exists(s => s.EndsWith(column.ToString() + row)))
+                            if (index >= 0) _moves.Add(_moves[index] + " " + move);
+                            else _moves.Add(current + " " + move);
+                        }
+                        else if (next.ownership > 0 && next.ownership != field.ownership)
+                        {
+                            downRight = f => f.column == (next.column + 1) && f.row == (next.row - 1);
+
+                            if (_fields.Exists(downRight))
                             {
-                                string path = _moves.Find(s => s.EndsWith(column.ToString() + row));
-                                _moves.Add(path + " " + move);
-                            }
-                            else _moves.Add(column.ToString() + row + " " + move);
+                                Field doubleNext = _fields.Find(downRight);
 
-                            FindMoves((char)(column - 2), (row - 2), true);
+                                if (doubleNext.ownership == 0)
+                                {
+                                    string move = doubleNext.column.ToString() + doubleNext.row;
+
+                                    if (index >= 0) _moves.Add(_moves[index] + " " + move);
+                                    else _moves.Add(current + " " + move);
+
+                                    List<Field> copy = new List<Field>(fields);
+
+                                    copy[copy.IndexOf(field)] = new Field(field.column, field.row, 0, field.leftUp, field.rightUp, field.leftDown, field.rightDown);
+                                    copy[copy.IndexOf(next)] = new Field(next.column, next.row, 0, next.leftUp, next.rightUp, next.leftDown, next.rightDown);
+                                    copy[copy.IndexOf(doubleNext)] = new Field(doubleNext.column, doubleNext.row, n, doubleNext.leftUp, doubleNext.rightUp, doubleNext.leftDown, doubleNext.rightDown);
+
+                                    FindMoves(n, copy, true);
+                                }
+                            }
                         }
                     }
-                }
-                #endregion
-                #region Prawy dolny róg
-                if (_fields.Exists(f => f.column == (column + 1) && f.row == (row - 1)))
-                {
-                    Field next = _fields.Find(f => (f.column == (column + 1) && f.row == (row - 1)));
+                    #endregion
+                    #region Lewy dolny róg
+                    Predicate<Field> downLeft = f => f.column == (field.column - 1) && f.row == (field.row - 1);
 
-                    if (next.ownership != field.ownership && _fields.Exists(f => f.column == (column + 2) && f.row == (row - 2)))
+                    if (fields.Exists(downLeft))
                     {
-                        next = _fields.Find(f => (f.column == (column + 2) && f.row == (row - 2)));
+                        Field next = fields.Find(downLeft);
 
-                        if (next.ownership == 0)
+                        if (next.ownership == 0 && !recurrence)
                         {
-                            string move = ((char)(column + 2)).ToString() + (row - 2);
+                            string move = next.column.ToString() + next.row;
 
-                            if (_moves.Exists(s => s.EndsWith(column.ToString() + row)))
+                            if (index >= 0) _moves.Add(_moves[index] + " " + move);
+                            else _moves.Add(current + " " + move);
+                        }
+                        else if (next.ownership > 0 && next.ownership != field.ownership)
+                        {
+                            downLeft = f => f.column == (next.column - 1) && f.row == (next.row - 1);
+
+                            if (_fields.Exists(downLeft))
                             {
-                                string path = _moves.Find(s => s.EndsWith(column.ToString() + row));
-                                _moves.Add(path + " " + move);
-                            }
-                            else _moves.Add(column.ToString() + row + " " + move);
+                                Field doubleNext = _fields.Find(downLeft);
 
-                            FindMoves((char)(column + 2), (row - 2), true);
+                                if (doubleNext.ownership == 0)
+                                {
+                                    string move = doubleNext.column.ToString() + doubleNext.row;
+
+                                    if (index >= 0) _moves.Add(_moves[index] + " " + move);
+                                    else _moves.Add(current + " " + move);
+
+                                    List<Field> copy = new List<Field>(fields);
+
+                                    copy[copy.IndexOf(field)] = new Field(field.column, field.row, 0, field.leftUp, field.rightUp, field.leftDown, field.rightDown);
+                                    copy[copy.IndexOf(next)] = new Field(next.column, next.row, 0, next.leftUp, next.rightUp, next.leftDown, next.rightDown);
+                                    copy[copy.IndexOf(doubleNext)] = new Field(doubleNext.column, doubleNext.row, n, doubleNext.leftUp, doubleNext.rightUp, doubleNext.leftDown, doubleNext.rightDown);
+
+                                    FindMoves(n, copy, true);
+                                }
+                            }
                         }
                     }
+                    #endregion
                 }
-                #endregion
             }
         }
     }
