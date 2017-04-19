@@ -9,6 +9,7 @@
       Title="Rozrywka">
 
     <Grid>
-        
+        <Image x:Name="view" HorizontalAlignment="Left" Height="400" Margin="10,10,0,0" VerticalAlignment="Top" Width="805"/>
+
     </Grid>
 </Page>

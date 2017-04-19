@@ -128,9 +128,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Chessboard.cs" />
     <Compile Include="Rozrywka.xaml.cs">
       <DependentUpon>Rozrywka.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Tools.cs" />
     <Page Include="Kalibracja.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

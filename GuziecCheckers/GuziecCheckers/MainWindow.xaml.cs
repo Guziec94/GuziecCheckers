@@ -15,6 +15,7 @@ namespace GuziecCheckers
         private void Window_Closed(object sender, System.EventArgs e)
         {
             if (Kalibracja.t != null && Kalibracja.t.IsAlive) Kalibracja.t.Abort();
+            if (Rozrywka.t != null && Rozrywka.t.IsAlive) Rozrywka.t.Abort();
         }
     }
 }
