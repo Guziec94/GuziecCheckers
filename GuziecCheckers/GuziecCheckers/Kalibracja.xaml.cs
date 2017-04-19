@@ -16,29 +16,38 @@ namespace GuziecCheckers
         
         #region Ciało wątku przetwarzającego obraz napływający z kamery
         private void w()
-        {         
-            while (true)
+        {
+            try
             {
-                try
+                Capture kamera = new Capture(0);
+                while (true)
                 {
-                    Capture kamera = new Capture(0);
                     Mat matImage = kamera.QueryFrame();
+
                     Image<Bgr, byte> obraz = matImage.ToImage<Bgr, byte>();
 
                     Image<Gray, byte> gray1 = obraz.InRange(Chessboard.PawnsInfo.minColorRange1, Chessboard.PawnsInfo.maxColorRange1);
                     Image<Gray, byte> gray2 = obraz.InRange(Chessboard.PawnsInfo.minColorRange2, Chessboard.PawnsInfo.maxColorRange2);
 
+                    CircleF[] pawns1 = gray1.HoughCircles(new Gray(85), new Gray(30), 2, 10, 10, 20)[0];
+                    CircleF[] pawns2 = gray2.HoughCircles(new Gray(85), new Gray(30), 2, 10, 10, 20)[0];
+
+                    n1.Dispatcher.Invoke(() => { n1.Text = pawns1.Length + " / 5 znalezionych pionów gracza nr 1"; });
+                    n2.Dispatcher.Invoke(() => { n2.Text = pawns2.Length + " / 5 znalezionych pionów gracza nr 2"; });
+
                     view1.Dispatcher.Invoke(() => { view1.Source = Tools.ImageToBitmapSource(gray1); });
                     view2.Dispatcher.Invoke(() => { view2.Source = Tools.ImageToBitmapSource(gray2); });
                 }
-                catch (Exception) { }
             }
+            catch (Exception /*ex*/) { /*System.Windows.MessageBox.Show(ex.Message);*/ }
         }
         #endregion
 
         public Kalibracja()
         {
             InitializeComponent();
+
+            P1Rmin.ToolTip = P1Gmin.ToolTip = P1Bmin.ToolTip = P2Rmin.ToolTip = P2Gmin.ToolTip = P2Bmin.ToolTip = "Minimum (0-255)";
 
             PxColor_TextChanged(null, null);
             #region Uruchamiamy wątek przetwarzający obraz z kamery

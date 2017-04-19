@@ -93,29 +93,30 @@ namespace GuziecCheckers
                     if (row == (_size - 1)) row = 1;
                 }
 
-                #region Aktualizacja położenia pionów
-                Image<Gray, byte> gray1 = img.InRange(PawnsInfo.minColorRange1, PawnsInfo.maxColorRange1);
-                Image<Gray, byte> gray2 = img.InRange(PawnsInfo.minColorRange2, PawnsInfo.maxColorRange2);
+                
+            }
+            #endregion
+            #region Aktualizacja położenia pionów
+            Image<Gray, byte> gray1 = img.InRange(PawnsInfo.minColorRange1, PawnsInfo.maxColorRange1);
+            Image<Gray, byte> gray2 = img.InRange(PawnsInfo.minColorRange2, PawnsInfo.maxColorRange2);
 
-                _pawnsPlayer1 = gray1.HoughCircles(new Gray(85), new Gray(40), 2, PawnsInfo.minDistance, PawnsInfo.minRadius, PawnsInfo.maxRadius)[0];
-                _pawnsPlayer2 = gray2.HoughCircles(new Gray(85), new Gray(40), 2, PawnsInfo.minDistance, PawnsInfo.minRadius, PawnsInfo.maxRadius)[0];
+            _pawnsPlayer1 = gray1.HoughCircles(new Gray(85), new Gray(30), 2, PawnsInfo.minDistance, PawnsInfo.minRadius, PawnsInfo.maxRadius)[0];
+            _pawnsPlayer2 = gray2.HoughCircles(new Gray(85), new Gray(30), 2, PawnsInfo.minDistance, PawnsInfo.minRadius, PawnsInfo.maxRadius)[0];
 
-                foreach (CircleF pawn in _pawnsPlayer1)
-                {
-                    Point position = new Point((int)pawn.Center.X, (int)pawn.Center.Y);
+            foreach (CircleF pawn in _pawnsPlayer1)
+            {
+                Point position = new Point((int)pawn.Center.X, (int)pawn.Center.Y);
 
-                    int search = _fields.FindIndex(field => (position.X >= field.leftUp.X && position.X <= field.rightUp.X) && (position.Y >= field.leftUp.Y && position.Y <= field.leftDown.Y));
-                    if (search >= 0) _fields[search] = new Field(_fields[search].column, _fields[search].row, 1, _fields[search].leftUp, _fields[search].rightUp, _fields[search].leftDown, _fields[search].rightDown);
-                }
+                int search = _fields.FindIndex(field => (position.X >= field.leftUp.X && position.X <= field.rightUp.X) && (position.Y >= field.leftUp.Y && position.Y <= field.leftDown.Y));
+                if (search >= 0) _fields[search] = new Field(_fields[search].column, _fields[search].row, 1, _fields[search].leftUp, _fields[search].rightUp, _fields[search].leftDown, _fields[search].rightDown);
+            }
 
-                foreach (CircleF pawn in _pawnsPlayer2)
-                {
-                    Point position = new Point((int)pawn.Center.X, (int)pawn.Center.Y);
+            foreach (CircleF pawn in _pawnsPlayer2)
+            {
+                Point position = new Point((int)pawn.Center.X, (int)pawn.Center.Y);
 
-                    int search = _fields.FindIndex(field => (position.X >= field.leftUp.X && position.X <= field.rightUp.X) && (position.Y >= field.leftUp.Y && position.Y <= field.leftDown.Y));
-                    if (search >= 0) _fields[search] = new Field(_fields[search].column, _fields[search].row, 2, _fields[search].leftUp, _fields[search].rightUp, _fields[search].leftDown, _fields[search].rightDown);
-                }
-                #endregion
+                int search = _fields.FindIndex(field => (position.X >= field.leftUp.X && position.X <= field.rightUp.X) && (position.Y >= field.leftUp.Y && position.Y <= field.leftDown.Y));
+                if (search >= 0) _fields[search] = new Field(_fields[search].column, _fields[search].row, 2, _fields[search].leftUp, _fields[search].rightUp, _fields[search].leftDown, _fields[search].rightDown);
             }
             #endregion
 

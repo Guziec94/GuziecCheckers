@@ -10,6 +10,8 @@
 
     <Grid>
         <Image x:Name="view" HorizontalAlignment="Left" Height="400" Margin="10,10,0,0" VerticalAlignment="Top" Width="805"/>
+        <ListBox x:Name="P1movesList" HorizontalAlignment="Left" Height="150" Margin="10,410,0,0" VerticalAlignment="Top" Width="400" RenderTransformOrigin="0.279,0.338"/>
+        <ListBox x:Name="P2movesList" HorizontalAlignment="Left" Height="150" Margin="410,410,0,0" VerticalAlignment="Top" Width="400" RenderTransformOrigin="0.279,0.338"/>
 
     </Grid>
 </Page>
