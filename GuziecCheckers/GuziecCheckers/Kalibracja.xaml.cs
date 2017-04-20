@@ -85,7 +85,7 @@ namespace GuziecCheckers
             {
                 t.Abort();
 
-                Rozrywka rozrywka = new Rozrywka();
+                Rozgrywka rozrywka = new Rozgrywka();
                 NavigationService nav = NavigationService.GetNavigationService(this);
                 nav.Navigate(rozrywka);
             }

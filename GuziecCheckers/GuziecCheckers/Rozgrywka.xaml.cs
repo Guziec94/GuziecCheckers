@@ -10,7 +10,7 @@ namespace GuziecCheckers
     /// <summary>
     /// Interaction logic for Rozrywka.xaml
     /// </summary>
-    public partial class Rozrywka : Page
+    public partial class Rozgrywka : Page
     {
         public static Thread t = null;
 
@@ -44,7 +44,7 @@ namespace GuziecCheckers
         }
         #endregion
 
-        public Rozrywka()
+        public Rozgrywka()
         {
             InitializeComponent();
 
