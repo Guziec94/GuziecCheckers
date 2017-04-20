@@ -63,6 +63,8 @@ namespace GuziecCheckers
 
         private List<string> _moves;
 
+        public static Capture kamera = new Capture(0);
+
         /// <summary>
         /// Metoda kalibrująca zmiany położenia pól szachownicy względem kamery oraz zmiany ułożenia pionów na szachownicy
         /// </summary>
@@ -146,9 +148,14 @@ namespace GuziecCheckers
         /// <param name="size"></param>
         public Chessboard(double minDistance, int minRadius, int maxRadius, int size = 10)
         {
-            _size = size;
-            _fields = new List<Field>();
-            _moves = new List<string>();
+            try
+            {                
+                _size = size;
+
+                _fields = new List<Field>();
+                _moves = new List<string>();
+            }
+            catch (Exception ex) { System.Windows.MessageBox.Show(ex.Message); }
 
             #region Uzupełnienie danych na temat pionów graczy
             PawnsInfo.minDistance = minDistance;

@@ -13,16 +13,15 @@ namespace GuziecCheckers
     public partial class Kalibracja : Page
     {
         public static Thread t = null;
-        
+
         #region Ciało wątku przetwarzającego obraz napływający z kamery
         private void w()
         {
             try
             {
-                Capture kamera = new Capture(0);
                 while (true)
                 {
-                    Mat matImage = kamera.QueryFrame();
+                    Mat matImage = Chessboard.kamera.QueryFrame();
 
                     Image<Bgr, byte> obraz = matImage.ToImage<Bgr, byte>();
 
@@ -47,9 +46,11 @@ namespace GuziecCheckers
         {
             InitializeComponent();
 
-            P1Rmin.ToolTip = P1Gmin.ToolTip = P1Bmin.ToolTip = P2Rmin.ToolTip = P2Gmin.ToolTip = P2Bmin.ToolTip = "Minimum (0-255)";
-
             PxColor_TextChanged(null, null);
+            #region Ustawiamy podpowiedzi
+            P1Rmin.ToolTip = P1Gmin.ToolTip = P1Bmin.ToolTip = P2Rmin.ToolTip = P2Gmin.ToolTip = P2Bmin.ToolTip = "Minimum (0-255)";
+            P1Rmax.ToolTip = P1Gmax.ToolTip = P1Bmax.ToolTip = P2Rmax.ToolTip = P2Gmax.ToolTip = P2Bmax.ToolTip = "Maksimum (0-255)";
+            #endregion 
             #region Uruchamiamy wątek przetwarzający obraz z kamery
             t = new Thread(w);
             t.Start();
@@ -70,7 +71,7 @@ namespace GuziecCheckers
                 Chessboard.PawnsInfo.minColorRange2 = new Bgr(Convert.ToInt32(P2Bmin.Text), Convert.ToInt32(P2Gmin.Text), Convert.ToInt32(P2Rmin.Text));
                 Chessboard.PawnsInfo.maxColorRange2 = new Bgr(Convert.ToInt32(P2Bmax.Text), Convert.ToInt32(P2Gmax.Text), Convert.ToInt32(P2Rmax.Text));
             }
-            catch (Exception) { }
+            catch (Exception /*ex*/) { /*System.Windows.MessageBox.Show(ex.Message);*/ }
         }
 
         /// <summary>
@@ -80,10 +81,15 @@ namespace GuziecCheckers
         /// <param name="e"></param>
         private void button_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            Rozrywka rozrywka = new Rozrywka();
+            try
+            {
+                t.Abort();
 
-            NavigationService nav = NavigationService.GetNavigationService(this);
-            nav.Navigate(rozrywka);
+                Rozrywka rozrywka = new Rozrywka();
+                NavigationService nav = NavigationService.GetNavigationService(this);
+                nav.Navigate(rozrywka);
+            }
+            catch (Exception /*ex*/) { /*System.Windows.MessageBox.Show(ex.Message);*/ }
         }
     }
 }

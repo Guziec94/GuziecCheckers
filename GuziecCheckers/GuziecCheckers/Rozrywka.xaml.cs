@@ -19,11 +19,11 @@ namespace GuziecCheckers
         {
             try
             {
-                Chessboard szachownica = new Chessboard(10.0, 10, 20);
-                Capture kamera = new Capture(0);
+                Chessboard szachownica = new Chessboard(10.0, 10, 20); 
+
                 while (true)
                 {
-                    Mat matImage = kamera.QueryFrame();
+                    Mat matImage = Chessboard.kamera.QueryFrame();
                     Image<Bgr, byte> obraz = matImage.ToImage<Bgr, byte>();
 
                     szachownica.Calibration(obraz, true);
@@ -31,13 +31,16 @@ namespace GuziecCheckers
                     List<string> P1moves = szachownica.FindMoves(1);
                     List<string> P2moves = szachownica.FindMoves(2);
 
+                    P1movesList.Dispatcher.Invoke(() => { P1movesList.Items.Clear(); });
+                    P2movesList.Dispatcher.Invoke(() => { P2movesList.Items.Clear(); });
+
                     foreach (string move in P1moves) P1movesList.Dispatcher.Invoke(() => { P1movesList.Items.Add(move); });
                     foreach (string move in P2moves) P2movesList.Dispatcher.Invoke(() => { P2movesList.Items.Add(move); });
 
                     view.Dispatcher.Invoke(() => { view.Source = Tools.ImageToBitmapSource(obraz); });
                 }
             }
-            catch (Exception) { }
+            catch (Exception /*ex*/) { /*System.Windows.MessageBox.Show(ex.Message);*/ }
         }
         #endregion
 
