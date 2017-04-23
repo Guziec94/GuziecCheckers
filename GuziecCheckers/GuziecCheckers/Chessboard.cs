@@ -55,7 +55,7 @@ namespace GuziecCheckers
         private int _size;
         private List<string> _moves;
 
-        private List<Field> _fields;
+        public List<Field> _fields;
         
         public static Capture kamera = new Capture(1);
 
