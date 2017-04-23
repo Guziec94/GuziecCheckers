@@ -19,7 +19,7 @@ namespace GuziecCheckers
         {
             try
             {
-                Chessboard szachownica = new Chessboard(10.0, 10, 20); 
+                Chessboard szachownica = new Chessboard(); 
 
                 while (true)
                 {
@@ -29,12 +29,11 @@ namespace GuziecCheckers
                     szachownica.Calibration(obraz, true);
 
                     List<string> P1moves = szachownica.FindMoves(1);
-                    List<string> P2moves = szachownica.FindMoves(2);
-
                     P1movesList.Dispatcher.Invoke(() => { P1movesList.Items.Clear(); });
-                    P2movesList.Dispatcher.Invoke(() => { P2movesList.Items.Clear(); });
+                    foreach (string move in P1moves) P1movesList.Dispatcher.Invoke(() => { P1movesList.Items.Add(move); });                   
 
-                    foreach (string move in P1moves) P1movesList.Dispatcher.Invoke(() => { P1movesList.Items.Add(move); });
+                    List<string> P2moves = szachownica.FindMoves(2);
+                    P2movesList.Dispatcher.Invoke(() => { P2movesList.Items.Clear(); });
                     foreach (string move in P2moves) P2movesList.Dispatcher.Invoke(() => { P2movesList.Items.Add(move); });
 
                     view.Dispatcher.Invoke(() => { view.Source = Tools.ImageToBitmapSource(obraz); });
