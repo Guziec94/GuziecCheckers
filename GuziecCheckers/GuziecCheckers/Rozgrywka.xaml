@@ -10,8 +10,8 @@
 
     <Grid>
         <Image x:Name="view" Height="400" Width="543" Margin="46,22,246,0" VerticalAlignment="Top" Stretch="Fill"/>
-        <ListBox x:Name="P1movesList" HorizontalAlignment="Left" Height="120" Margin="46,466,0,0" VerticalAlignment="Top" Width="260" RenderTransformOrigin="0.279,0.338" SelectionChanged="PmovesList_SelectionChanged"/>
-        <ListBox x:Name="P2movesList" HorizontalAlignment="Left" Height="120" Margin="311,466,0,0" VerticalAlignment="Top" Width="260" RenderTransformOrigin="0.279,0.338" SelectionChanged="PmovesList_SelectionChanged"/>
+        <ListBox x:Name="P1movesList" HorizontalAlignment="Left" Height="120" Margin="46,466,0,0" VerticalAlignment="Top" Width="260" RenderTransformOrigin="0.279,0.338" SelectionChanged="P1movesList_SelectionChanged"/>
+        <ListBox x:Name="P2movesList" HorizontalAlignment="Left" Height="120" Margin="311,466,0,0" VerticalAlignment="Top" Width="260" RenderTransformOrigin="0.279,0.338" SelectionChanged="P2movesList_SelectionChanged"/>
         <Label x:Name="label" Content="Możliwe ruchy gracza nr 1" HorizontalAlignment="Left" Margin="46,432,0,0" VerticalAlignment="Top" FontSize="18" Foreground="Gray"/>
         <Label x:Name="label_Copy" Content="Możliwe ruchy gracza nr 2" HorizontalAlignment="Left" Margin="306,432,0,0" VerticalAlignment="Top" FontSize="18" Foreground="Gray"/>
         <CheckBox x:Name="showLinesCheckBox" Content="Pokaż linie kalibracyjne" HorizontalAlignment="Left" Margin="594,108,0,0" VerticalAlignment="Top" IsChecked="True"/>

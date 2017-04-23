@@ -115,11 +115,21 @@ namespace GuziecCheckers
             hideMove.IsEnabled = false;
         }
 
-        private void PmovesList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void P1movesList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             try
             {
                 _move = P1movesList.SelectedValue.ToString();
+                hideMove.IsEnabled = true;
+            }
+            catch (Exception /*ex*/) { /*System.Windows.MessageBox.Show(ex.Message);*/ }
+        }
+
+        private void P2movesList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                _move = P2movesList.SelectedValue.ToString();
                 hideMove.IsEnabled = true;
             }
             catch (Exception /*ex*/) { /*System.Windows.MessageBox.Show(ex.Message);*/ }
