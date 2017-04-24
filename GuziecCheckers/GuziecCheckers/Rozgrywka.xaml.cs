@@ -37,23 +37,26 @@ namespace GuziecCheckers
                     bool showChecked = false;
                     showLinesCheckBox.Dispatcher.Invoke(() => {
                         if ((bool)showLinesCheckBox.IsChecked) { showChecked = true; }
-                    });
+                    });   
 
-                    szachownica.Calibration(obraz, showChecked);
-
-                    if (_move != null) showMove(ref obraz, _move);
+                    bool exist = false;
+                    bool calibrated = szachownica.Calibration(obraz, showChecked);
 
                     List<string> P1moves = szachownica.FindMoves(1);
                     P1movesList.Dispatcher.Invoke(() => {
                         P1movesList.Items.Clear();
                         foreach (string move in P1moves) P1movesList.Items.Add(move);
+                        if (calibrated && P1movesList.Items.Contains(_move)) exist = true;
                     });
 
                     List<string> P2moves = szachownica.FindMoves(2);
                     P2movesList.Dispatcher.Invoke(() => {
                         P2movesList.Items.Clear();
                         foreach (string move in P2moves) P2movesList.Items.Add(move);
+                        if (calibrated && P2movesList.Items.Contains(_move)) exist = true;
                     });
+
+                    if (_move != null && exist) showMove(ref obraz, _move);
 
                     view.Dispatcher.Invoke(() => { view.Source = Tools.ImageToBitmapSource(obraz); });
                 }

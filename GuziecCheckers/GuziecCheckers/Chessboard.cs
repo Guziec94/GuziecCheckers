@@ -65,7 +65,7 @@ namespace GuziecCheckers
         /// <param name="img">Przeszukiwany obraz</param>
         /// <param name="draw">Rysuje punkty wskazujące położenie pól szachownicy</param>
         /// <returns></returns>
-        public void Calibration(Image<Bgr, byte> img, bool drawFields = false)
+        public bool Calibration(Image<Bgr, byte> img, bool drawFields = false)
         {
             #region Kalibracja kamery
             Size patternSize = new Size((_size - 1), (_size - 1));
@@ -74,7 +74,7 @@ namespace GuziecCheckers
             bool found = CvInvoke.FindChessboardCorners(img, patternSize, corners);
             #endregion
             #region Aktualizacja położenia pól
-            if (corners.Size == Convert.ToInt32(Math.Pow((_size - 1), 2)))
+            if (found)
             {
                 Bitmap bitmapa = img.ToBitmap();
 
@@ -125,6 +125,8 @@ namespace GuziecCheckers
             #region Wyświetlanie pól
             if (drawFields) CvInvoke.DrawChessboardCorners(img, patternSize, corners, found);
             #endregion
+
+            return found;
         }
         
         /// <summary>
