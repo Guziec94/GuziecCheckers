@@ -3,10 +3,10 @@ using Emgu.CV.Structure;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Threading;
 using System.Windows.Controls;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
 using static GuziecCheckers.Chessboard;
 
 namespace GuziecCheckers
@@ -17,51 +17,71 @@ namespace GuziecCheckers
     public partial class Rozgrywka : Page
     {
         public static Thread t = null;
-        public Chessboard szachownica = null;
-        public Image<Bgr, byte> obraz = null;
 
+        private Chessboard szachownica = null;
         private string _move = null;
 
         #region Ciało wątku przetwarzającego obraz napływający z kamery
         private void w()
         {
-            try
-            {
-                szachownica = new Chessboard();
+            szachownica = new Chessboard();
 
-                while (true)
+            while (true)
+            {
+                try
                 {
                     Mat matImage = Chessboard.kamera.QueryFrame();
-                    obraz = matImage.ToImage<Bgr, byte>();
+                    Image<Bgr, byte> obraz = matImage.ToImage<Bgr, byte>();
 
                     bool showChecked = false;
                     showLinesCheckBox.Dispatcher.Invoke(() => {
                         if ((bool)showLinesCheckBox.IsChecked) { showChecked = true; }
-                    });   
+                    });
 
-                    bool exist = false;
                     bool calibrated = szachownica.Calibration(obraz, showChecked);
 
-                    List<string> P1moves = szachownica.FindMoves(1);
-                    P1movesList.Dispatcher.Invoke(() => {
-                        P1movesList.Items.Clear();
-                        foreach (string move in P1moves) P1movesList.Items.Add(move);
-                        if (calibrated && P1movesList.Items.Contains(_move)) exist = true;
-                    });
+                    if (calibrated)
+                    {
+                        bool exist = false;
 
-                    List<string> P2moves = szachownica.FindMoves(2);
-                    P2movesList.Dispatcher.Invoke(() => {
-                        P2movesList.Items.Clear();
-                        foreach (string move in P2moves) P2movesList.Items.Add(move);
-                        if (calibrated && P2movesList.Items.Contains(_move)) exist = true;
-                    });
+                        List<string> P1moves = szachownica.FindMoves(1);
 
-                    if (_move != null && exist) showMove(ref obraz, _move);
+                        P1movesList.Dispatcher.Invoke(() => {
+                            List<string> old = P1movesList.Items.Cast<string>().ToList();
+
+                            if (!P1moves.SequenceEqual(old))
+                            {
+                                P1movesList.Items.Clear();
+                                foreach (string move in P1moves) P1movesList.Items.Add(move);
+                            }
+                            if (_move != null && P1movesList.Items.Contains(_move)) exist = true;
+                        });
+
+                        List<string> P2moves = szachownica.FindMoves(2);
+
+                        P2movesList.Dispatcher.Invoke(() => {
+                            List<string> old = P2movesList.Items.Cast<string>().ToList();
+
+                            if (!P2moves.SequenceEqual(old))
+                            {
+                                P2movesList.Items.Clear();
+                                foreach (string move in P2moves) P2movesList.Items.Add(move);
+                            }
+                            if (_move != null && P2movesList.Items.Contains(_move)) exist = true;
+                        });
+
+                        if (exist) showMove(ref obraz, _move);
+                    }
+                    else
+                    {
+                        P1movesList.Dispatcher.Invoke(() => { P1movesList.Items.Clear(); });
+                        P2movesList.Dispatcher.Invoke(() => { P2movesList.Items.Clear(); });
+                    }
 
                     view.Dispatcher.Invoke(() => { view.Source = Tools.ImageToBitmapSource(obraz); });
                 }
+                catch (Exception /*ex*/) { /*System.Windows.MessageBox.Show(ex.Message);*/ }  
             }
-            catch (Exception /*ex*/) { /*System.Windows.MessageBox.Show(ex.Message);*/ }
         }
         #endregion
 

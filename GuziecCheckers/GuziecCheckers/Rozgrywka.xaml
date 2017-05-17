@@ -10,13 +10,18 @@
 
     <Grid>
         <Image x:Name="view" Height="400" Width="543" Margin="46,22,246,0" VerticalAlignment="Top" Stretch="Fill"/>
-        <ListBox x:Name="P1movesList" HorizontalAlignment="Left" Height="120" Margin="46,466,0,0" VerticalAlignment="Top" Width="260" RenderTransformOrigin="0.279,0.338" SelectionChanged="P1movesList_SelectionChanged"/>
-        <ListBox x:Name="P2movesList" HorizontalAlignment="Left" Height="120" Margin="311,466,0,0" VerticalAlignment="Top" Width="260" RenderTransformOrigin="0.279,0.338" SelectionChanged="P2movesList_SelectionChanged"/>
-        <Label x:Name="label" Content="Możliwe ruchy gracza nr 1" HorizontalAlignment="Left" Margin="46,432,0,0" VerticalAlignment="Top" FontSize="18" Foreground="Gray"/>
-        <Label x:Name="label_Copy" Content="Możliwe ruchy gracza nr 2" HorizontalAlignment="Left" Margin="306,432,0,0" VerticalAlignment="Top" FontSize="18" Foreground="Gray"/>
+        <ListBox x:Name="P1movesList" HorizontalAlignment="Left" Height="100" Margin="598,181,0,0" VerticalAlignment="Top" Width="170" RenderTransformOrigin="0.279,0.338" SelectionChanged="P1movesList_SelectionChanged"/>
+        <ListBox x:Name="P2movesList" HorizontalAlignment="Left" Height="100" Margin="598,322,0,0" VerticalAlignment="Top" Width="170" RenderTransformOrigin="0.279,0.338" SelectionChanged="P2movesList_SelectionChanged"/>
+        <Label x:Name="label" Content="Możliwe ruchy gracza nr 1" HorizontalAlignment="Left" Margin="594,147,0,0" VerticalAlignment="Top" FontSize="14" Foreground="Gray" Width="170"/>
+        <Label x:Name="label_Copy" Content="Możliwe ruchy gracza nr 2" HorizontalAlignment="Left" Margin="594,288,0,0" VerticalAlignment="Top" FontSize="14" Foreground="Gray" Width="170"/>
         <CheckBox x:Name="showLinesCheckBox" Content="Pokaż linie kalibracyjne" HorizontalAlignment="Left" Margin="594,108,0,0" VerticalAlignment="Top" IsChecked="True"/>
         <Button x:Name="button" Content="Powrót do panelu konfiguracji" HorizontalAlignment="Left" Margin="594,22,0,0" VerticalAlignment="Top" Width="174" Height="38" BorderBrush="#FF878585" Background="White" Click="button_Click"/>
         <Button x:Name="hideMove" Content="Ukryj wizualizację ruchu" HorizontalAlignment="Left" Margin="594,65,0,0" VerticalAlignment="Top" Width="174" Height="38" BorderBrush="#FF878585" Background="White" Click="hideMove_Click" IsEnabled="False"/>
+        <Rectangle Fill="White" HorizontalAlignment="Left" Height="145" Margin="46,450,0,0" Stroke="#FFC9C9C9" VerticalAlignment="Top" Width="722"/>
+        <Label x:Name="label1_Copy1" Content="Możliwe do wykonania przez graczy sekwencje ruchów znajdują się w okienkach po prawej stronie" HorizontalAlignment="Left" Margin="67,465,0,0" VerticalAlignment="Top" FontSize="10" Foreground="#FF686666"/>
+        <Label x:Name="label1_Copy" Content="Wybierając myszką interesującą nas sekwencję ruchów wyświetlimy ją na podglądzie szachownicy" HorizontalAlignment="Left" Margin="67,493,0,0" VerticalAlignment="Top" FontSize="10" Foreground="#FF686666"/>
+        <Label x:Name="label1_Copy2" Content="Wybraną sekwencję ruchu możemy ukryć poprzez wciśnięcie przycisku 'Ukryj wizualizację ruchu'" HorizontalAlignment="Left" Margin="67,521,0,0" VerticalAlignment="Top" FontSize="10" Foreground="#FF686666"/>
+        <Label x:Name="label1_Copy3" Content="Możemy również wyłączyć podgląd linii kalibracyjnych oraz wrócić do panelu konfiguracji wciskając przycisk 'Powrót do panelu konfiguracji'" HorizontalAlignment="Left" Margin="67,549,0,0" VerticalAlignment="Top" FontSize="10" Foreground="#FF686666"/>
 
     </Grid>
 </Page>

@@ -1,7 +1,6 @@
 ﻿using Emgu.CV;
 using Emgu.CV.Structure;
 using System;
-using System.Drawing;
 using System.Threading;
 using System.Windows.Controls;
 using System.Windows.Navigation;
@@ -18,10 +17,34 @@ namespace GuziecCheckers
         #region Ciało wątku przetwarzającego obraz napływający z kamery
         private void w()
         {
-            try
+            while (true)
             {
-                while (true)
+                try
                 {
+                    #region Aktualizacja informacji o kolorach pionów
+                    int R = 0, G = 0, B = 0;
+
+                    P1Rmin.Dispatcher.Invoke(() => { R = Convert.ToInt32(P1Rmin.Text); });
+                    P1Gmin.Dispatcher.Invoke(() => { G = Convert.ToInt32(P1Gmin.Text); });
+                    P1Bmin.Dispatcher.Invoke(() => { B = Convert.ToInt32(P1Bmin.Text); });
+                    Chessboard.PawnsInfo.minColorRange1 = new Bgr(R, G, B);
+
+                    P1Rmax.Dispatcher.Invoke(() => { R = Convert.ToInt32(P1Rmax.Text); });
+                    P1Gmax.Dispatcher.Invoke(() => { G = Convert.ToInt32(P1Gmax.Text); });
+                    P1Bmax.Dispatcher.Invoke(() => { B = Convert.ToInt32(P1Bmax.Text); });
+                    Chessboard.PawnsInfo.maxColorRange1 = new Bgr(R, G, B);
+
+                    P2Rmin.Dispatcher.Invoke(() => { R = Convert.ToInt32(P2Rmin.Text); });
+                    P2Gmin.Dispatcher.Invoke(() => { G = Convert.ToInt32(P2Gmin.Text); });
+                    P2Bmin.Dispatcher.Invoke(() => { B = Convert.ToInt32(P2Bmin.Text); });
+                    Chessboard.PawnsInfo.minColorRange2 = new Bgr(R, G, B);
+
+                    P2Rmax.Dispatcher.Invoke(() => { R = Convert.ToInt32(P2Rmax.Text); });
+                    P2Gmax.Dispatcher.Invoke(() => { G = Convert.ToInt32(P2Gmax.Text); });
+                    P2Bmax.Dispatcher.Invoke(() => { B = Convert.ToInt32(P2Bmax.Text); });
+                    Chessboard.PawnsInfo.maxColorRange2 = new Bgr(R, G, B);
+                #endregion
+
                     Mat matImage = Chessboard.kamera.QueryFrame();
 
                     Image<Bgr, byte> obraz = matImage.ToImage<Bgr, byte>();
@@ -32,8 +55,8 @@ namespace GuziecCheckers
                     view1.Dispatcher.Invoke(() => { view1.Source = Tools.ImageToBitmapSource(gray1); });
                     view2.Dispatcher.Invoke(() => { view2.Source = Tools.ImageToBitmapSource(gray2); });
                 }
+                catch (Exception /*ex*/) { /*System.Windows.MessageBox.Show(ex.Message);*/ }
             }
-            catch (Exception /*ex*/) { /*System.Windows.MessageBox.Show(ex.Message);*/ }
         }
         #endregion
 
@@ -41,7 +64,6 @@ namespace GuziecCheckers
         {
             InitializeComponent();
 
-            PxColor_TextChanged(null, null);
             #region Ustawiamy podpowiedzi
             P1Rmin.ToolTip = P1Gmin.ToolTip = P1Bmin.ToolTip = P2Rmin.ToolTip = P2Gmin.ToolTip = P2Bmin.ToolTip = "Minimum (0-255)";
             P1Rmax.ToolTip = P1Gmax.ToolTip = P1Bmax.ToolTip = P2Rmax.ToolTip = P2Gmax.ToolTip = P2Bmax.ToolTip = "Maksimum (0-255)";
@@ -50,23 +72,6 @@ namespace GuziecCheckers
             t = new Thread(w);
             t.Start();
             #endregion
-        }
-
-        /// <summary>
-        /// Event wywoływany w momencie aktualizacji danych RGB w polach podczas kalibracji
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void PxColor_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            try
-            {
-                Chessboard.PawnsInfo.minColorRange1 = new Bgr(Convert.ToInt32(P1Rmin.Text), Convert.ToInt32(P1Gmin.Text), Convert.ToInt32(P1Bmin.Text));
-                Chessboard.PawnsInfo.maxColorRange1 = new Bgr(Convert.ToInt32(P1Rmax.Text), Convert.ToInt32(P1Gmax.Text), Convert.ToInt32(P1Bmax.Text));
-                Chessboard.PawnsInfo.minColorRange2 = new Bgr(Convert.ToInt32(P2Rmin.Text), Convert.ToInt32(P2Gmin.Text), Convert.ToInt32(P2Bmin.Text));
-                Chessboard.PawnsInfo.maxColorRange2 = new Bgr(Convert.ToInt32(P2Rmax.Text), Convert.ToInt32(P2Gmax.Text), Convert.ToInt32(P2Bmax.Text));
-            }
-            catch (Exception /*ex*/) { /*System.Windows.MessageBox.Show(ex.Message);*/ }
         }
 
         /// <summary>

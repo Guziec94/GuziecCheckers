@@ -10,7 +10,7 @@ namespace GuziecCheckers
 {
     public class Chessboard
     {
-        #region Struktury itp
+        #region Struktury
         public struct Field
         {
             public char column { get; set; }
@@ -39,9 +39,11 @@ namespace GuziecCheckers
 
         public struct PawnsInfo
         {
+            /*ZAKRES KOLORU ZWYKŁYCH PIONÓW GRACZA NR 1*/
             public static Bgr minColorRange1 { get; set; }
             public static Bgr maxColorRange1 { get; set; }
 
+            /*ZAKRES KOLORU ZWYKŁYCH PIONÓW GRACZA NR 2*/
             public static Bgr minColorRange2 { get; set; }
             public static Bgr maxColorRange2 { get; set; }
         }
@@ -52,10 +54,10 @@ namespace GuziecCheckers
             public int row { get; set; }
         }
         #endregion
-        private int _size;
-        private List<string> _moves;
 
+        private int _size;
         public List<Field> _fields;
+        private List<string> _moves;
         
         public static Capture kamera = new Capture(1);
 
@@ -162,10 +164,10 @@ namespace GuziecCheckers
         /// <returns>Lista stringów reprezentujących możliwe sekwencje ruchów gracza</returns>
         public List<string> FindMoves(int n)
         {
-            _moves.Clear();
-
             if (n == 1 || n == 2)
             {
+                _moves.Clear();
+
                 List<Field> fields = new List<Field>(_fields);
                 FindMoves(n, fields);
 
